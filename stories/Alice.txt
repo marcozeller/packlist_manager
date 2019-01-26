@@ -1,0 +1,14 @@
+Alice is an engeneering student.
+She is also a fitness enthusiast is really into fotography.
+Due to her demanding study and tight training schedule
+she does not have a lot of spare-time and has to optimize whereever possible.
+
+In order to never forget anything she makes checklists for all her stuff.
+Naturally she uses the three categories:
+*Study
+*Fitness
+*Fotography
+
+In each category she has several checklists for what she needs for some specific task.
+What she wants is a tool for her to put together and comfortable manipulate daily checklists.
+Fortunately she found exactly that...

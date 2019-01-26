@@ -1,0 +1,33 @@
+Bob loves hicking and camping.
+One day he decides to organize his equipment he uses for hicking.
+
+First he writes everything down he used for the last trip.
+It was a trip to the mountains in winter.
+Since he is really interested in the statistics of his equipment,
+he also writes down the weight, and price of every item on the list.
+
+As he plans his next trip he figures out,
+that he does not need a lot of the stuff from the last trip.
+Since this trip is in spring and less altitude.
+As a consequence he copies and adapts the old list.
+
+During this trip his really old tent starts leaking and he has to replace it.
+Therefore he adapts all the lists he has with the weight and parts of the new tent.
+
+He foresees were this leads:
+Whenever he changes one part of his equipment he needs to update all the lists he made.
+So he decides to organize his stuff modular.
+He figures out that for all trips (longer than one day) he needs about these modules:
+*Sleeping
+*Eating/Drinking
+*Orientation
+
+For some trips he needs to adapt his:
+*Clothing
+
+He figures if he composed his top packing list only with these basic modules
+plus some trip-specific items he can keep only one list for every module
+and adapt that arbitralily without having to change every list he ever made.
+
+Fortunately he finds a little application which allows him to do exactly this...
+

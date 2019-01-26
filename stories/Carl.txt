@@ -1,0 +1,20 @@
+Carl is a roofer with twelve years of experience in the job.
+Five years ago he started his own roof-building-business.
+That went went quite well and he soon had more opportunities for contracts,
+than he could do on his own.
+So he did employ two other experienced roofers since then.
+
+Now he wants to go a step further and train some young people to become roofers themself.
+He faces the challenge that the apprentice do not know what tools they need
+to acomplish a certain tasks.
+
+Carl decides to write down tools and materials needed to acomplish some task.
+He uses a modular approach.
+When writing everything down he realizes that some of what he wrote down will
+unavoidably change over time.
+For example he figures that in the future more work with plastic will be done than today.
+And allready today the materials used may vary a lot from one construction side
+to another construction side.
+
+He searches for a tool, which allow him to easily adapt the lists he made if.
+Fortunately he found exactly that...
