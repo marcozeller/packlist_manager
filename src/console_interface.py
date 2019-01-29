@@ -4,7 +4,7 @@
 Module Docstring
 """
 import npyscreen as nps
-import DatabaseInterface as dbi
+import database_interface as dbi
 
 __author__ = "Marco Zeller"
 __version__ = "0.0.0"
