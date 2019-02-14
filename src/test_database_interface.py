@@ -15,17 +15,17 @@ for i in range(100):
     item_attributes_list.append(item_attributes)
 
 
-def compare_item_data(item_list, attribute_dict, item_id=0):
+def compare_item_data(item_tuple, attribute_dict, item_id=0):
     if item_id == 0:
-        item_id = item_list[0]
+        item_id = item_tuple[0]
 
-    return item_list == (item_id,
-                         attribute_dict['name'],
-                         attribute_dict['function'],
-                         attribute_dict['weight'],
-                         attribute_dict['volume'],
-                         attribute_dict['price'],
-                         attribute_dict['amount'])
+    return item_tuple == (item_id,
+                          attribute_dict['name'],
+                          attribute_dict['function'],
+                          attribute_dict['weight'],
+                          attribute_dict['volume'],
+                          attribute_dict['price'],
+                          attribute_dict['amount'])
 
 
 def test_initialize_db():
