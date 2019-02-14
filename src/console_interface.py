@@ -10,6 +10,15 @@ __author__ = "Marco Zeller"
 __version__ = "0.0.0"
 __license__ = "MIT"
 
+db_name = ':memory:'
+
+default_values_new_item = {'name': "Name",
+                           'function': "Function",
+                           'weight': "0",
+                           'volume': "0",
+                           'price': "0",
+                           'amount': "0"}
+
 
 class AddItem(nps.ActionFormV2):
     def create(self):
@@ -20,12 +29,12 @@ class AddItem(nps.ActionFormV2):
         self._price = self.add(nps.TitleText, name="price: ")
         self._amount = self.add(nps.TitleText, name="amount: ")
 
-        self._name.value = "Test1"
-        self._function.value = "Function"
-        self._weight.value = "0"
-        self._volume.value = "0"
-        self._price.value = "0"
-        self._amount.value = "0"
+        self._name.value = default_values_new_item['name']
+        self._function.value = default_values_new_item['function']
+        self._weight.value = default_values_new_item['weight']
+        self._volume.value = default_values_new_item['volume']
+        self._price.value = default_values_new_item['price']
+        self._amount.value = default_values_new_item['amount']
 
     def on_ok(self):
         item_data = {}
@@ -38,16 +47,21 @@ class AddItem(nps.ActionFormV2):
 
         self.parentApp.db.store_new_item_in_db(item_data)
 
-    def on_cancel(self):
-        pass
+        self._name.value = default_values_new_item['name']
+        self._function.value = default_values_new_item['function']
+        self._weight.value = default_values_new_item['weight']
+        self._volume.value = default_values_new_item['volume']
+        self._price.value = default_values_new_item['price']
+        self._amount.value = default_values_new_item['amount']
 
-    def afterEditing(self):
-        self.parentApp.setNextForm('MAIN')
+    def on_cancel(self):
+        self.parentApp.setNextForm(None)
+        pass
 
 
 class App(nps.NPSAppManaged):
     def onStart(self):
-        self.db = dbi.Database(':memory:')
+        self.db = dbi.Database(self.db_name)
         self.add_item = self.addForm('MAIN',
                                      AddItem,
                                      name="Add a new Item")
@@ -55,4 +69,6 @@ class App(nps.NPSAppManaged):
 
 if __name__ == "__main__":
     """ TODO: """
-    app = App().run()
+    app = App()
+    app.db_name = db_name
+    app = app.run()
