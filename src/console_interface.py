@@ -15,12 +15,22 @@ __license__ = "MIT"
 
 db_name = ':memory:'
 
-default_values_new_item = {'name': "Name",
+default_values_new_item = {'name':     "Name",
                            'function': "Function",
-                           'weight': "0",
-                           'volume': "0",
-                           'price': "0",
-                           'amount': "0"}
+                           'weight':   "0",
+                           'volume':   "0",
+                           'price':    "0",
+                           'amount':   "0"}
+
+language_english = {'name':         "Name: ",
+                    'function':     "Function: ",
+                    'weight':       "Weight: ",
+                    'volume':       "Volume: ",
+                    'price':        "Price: ",
+                    'amount':       "Amount: ",
+                    'add_new_item': "Add a new Item"}
+
+language = language_english
 
 
 class AddItem(nps.ActionFormV2):
@@ -35,12 +45,12 @@ class AddItem(nps.ActionFormV2):
         Fills the field with default values.
         """
         # draw the fields needed to enter the attributes
-        self._name = self.add(nps.TitleText, name="name: ")
-        self._function = self.add(nps.TitleText, name="function: ")
-        self._weight = self.add(nps.TitleText, name="weight: ")
-        self._volume = self.add(nps.TitleText, name="volume: ")
-        self._price = self.add(nps.TitleText, name="price: ")
-        self._amount = self.add(nps.TitleText, name="amount: ")
+        self._name = self.add(nps.TitleText, name=language['name'])
+        self._function = self.add(nps.TitleText, name=language['function'])
+        self._weight = self.add(nps.TitleText, name=language['weight'])
+        self._volume = self.add(nps.TitleText, name=language['volume'])
+        self._price = self.add(nps.TitleText, name=language['price'])
+        self._amount = self.add(nps.TitleText, name=language['amount'])
 
         # fill in the fields with the default values
         self._name.value = default_values_new_item['name']
