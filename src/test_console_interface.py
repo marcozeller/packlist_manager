@@ -26,47 +26,56 @@ test_item = {'name': "TestName",
 
 
 def insert_item_values_in_fields(item_values):
-    # TODO: Find better way of deleting value in input field!
-    # Works only for default value or equal length.
-    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in coi.default_values_new_item['name']]
+    # delete the default values by pressing backspace as many times as
+    # there are characters in default value
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in
+                                        coi.default_values_new_item['name']]
+    # then enter the item's corresponding value
     nps.TEST_SETTINGS['TEST_INPUT'] += item_values['name']
+    # go to the next field
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
 
-    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in coi.default_values_new_item['function']]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in
+                                        coi.default_values_new_item['function']]
     nps.TEST_SETTINGS['TEST_INPUT'] += item_values['function']
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
 
-    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in coi.default_values_new_item['weight']]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in
+                                        coi.default_values_new_item['weight']]
     nps.TEST_SETTINGS['TEST_INPUT'] += str(item_values['weight'])
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
 
-    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in coi.default_values_new_item['volume']]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in
+                                        coi.default_values_new_item['volume']]
     nps.TEST_SETTINGS['TEST_INPUT'] += str(item_values['volume'])
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
 
-    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in coi.default_values_new_item['price']]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in
+                                        coi.default_values_new_item['price']]
     nps.TEST_SETTINGS['TEST_INPUT'] += str(item_values['price'])
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
 
-    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in coi.default_values_new_item['amount']]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_BACKSPACE for char in
+                                        coi.default_values_new_item['amount']]
     nps.TEST_SETTINGS['TEST_INPUT'] += str(item_values['amount'])
 
 
-class TestApp(nps.StandardApp):
-    def onStart(self):
-        self.db = coi.dbi.Database(self.db_name)
-        self.addForm("MAIN", coi.AddItem)
-
-
 def test_insert_item_via_console_interface():
+    # go to add item screen from main menu
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+    # add the item values and press enter
     insert_item_values_in_fields(test_item)
+    # go to the 'OK' button and press enter to save and get to main menu
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_RIGHT]
     nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
-    nps.TEST_SETTINGS['TEST_INPUT'] += 6*[curses.KEY_DOWN]
+
+    # go down in the main menu and press 'CANCEL' to exit the program
+    nps.TEST_SETTINGS['TEST_INPUT'] += 4*[curses.KEY_DOWN]
     nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
 
-    app = TestApp()
+    app = coi.App()
     app.db_name = ':memory:'
     app.run(fork=False)  # needs to run "py.test -s" else does not work
     # TODO: Read from database and compare as soon as implemented!
@@ -80,15 +89,20 @@ def test_insert_item_via_console_interface():
 
 def test_insert_multiple_item_via_console_interface():
     for i in range(10):
+        # go to add item screen from main menu
+        nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10: code for the Enter Key
+        # add the item values and press 'OK'
         insert_item_values_in_fields(test_item)
+        # go to the 'OK' button and press enter to save and get to main menu
         nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
         nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_RIGHT]
-        nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+        nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10: code for the Enter Key
 
-    nps.TEST_SETTINGS['TEST_INPUT'] += 6*[curses.KEY_DOWN]
+    # go down in the main menu and press 'CANCEL' to exit the program
+    nps.TEST_SETTINGS['TEST_INPUT'] += 4*[curses.KEY_DOWN]
     nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
 
-    app = TestApp()
+    app = coi.App()
     app.db_name = ':memory:'
     app.run(fork=False)  # needs to run "py.test -s" else does not work
     # TODO: Read from database and compare as soon as implemented!

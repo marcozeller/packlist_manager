@@ -28,9 +28,47 @@ language_english = {'name':         "Name: ",
                     'volume':       "Volume: ",
                     'price':        "Price: ",
                     'amount':       "Amount: ",
-                    'add_new_item': "Add a new Item"}
+                    'main_menu':    "Main Menu",
+                    'add_new_item': "Add a new Item",
+                    'list_items':   "List Items",
+                    'add_new_pack': "Add a new Pack",
+                    'list_packs':   "List Packs"}
 
 language = language_english
+
+
+class MainMenu(nps.ActionFormV2):
+    def go_to_add_item_screen(self):
+        self.parentApp.switchForm('ADD_ITEM')
+
+    def go_to_list_items_screen(self):
+        self.parentApp.switchForm('LIST_ITEMS')
+
+    def go_to_add_pack_screen(self):
+        self.parentApp.switchForm('ADD_PACK')
+
+    def go_to_list_packs_screen(self):
+        self.parentApp.switchForm('LIST_PACKS')
+
+    def create(self):
+        self.add(nps.ButtonPress,
+                 name=language['add_new_item'],
+                 when_pressed_function=self.go_to_add_item_screen)
+        self.add(nps.ButtonPress,
+                 name=language['list_items'],
+                 when_pressed_function=self.go_to_list_items_screen)
+        self.add(nps.ButtonPress,
+                 name=language['add_new_pack'],
+                 when_pressed_function=self.go_to_add_pack_screen)
+        self.add(nps.ButtonPress,
+                 name=language['list_packs'],
+                 when_pressed_function=self.go_to_list_packs_screen)
+
+    def on_ok(self):
+        self.parentApp.setNextForm(None)
+
+    def on_cancel(self):
+        self.parentApp.setNextForm(None)
 
 
 class AddItem(nps.ActionFormV2):
@@ -95,7 +133,7 @@ class AddItem(nps.ActionFormV2):
         self.reset_fields()
 
         # go back to main screen
-        self.parentApp.setNextForm(None)
+        self.parentApp.setNextForm('MAIN')
 
 
 class App(nps.NPSAppManaged):
@@ -107,8 +145,20 @@ class App(nps.NPSAppManaged):
         # add the different screens to the application
         # 'MAIN' is the starting screen
         self.add_item = self.addForm('MAIN',
+                                     MainMenu,
+                                     name=language['main_menu'])
+        self.add_item = self.addForm('ADD_ITEM',
                                      AddItem,
                                      name=language['add_new_item'])
+        self.add_item = self.addForm('LIST_ITEMS',
+                                     AddItem,
+                                     name=language['list_items'])
+        self.add_item = self.addForm('ADD_PACK',
+                                     AddItem,
+                                     name=language['add_new_pack'])
+        self.add_item = self.addForm('LIST_PACKS',
+                                     AddItem,
+                                     name=language['list_packs'])
 
 
 if __name__ == "__main__":
