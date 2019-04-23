@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import database_interface as dbi
 
+# Produce some test data:
 item_attributes_list = []
 
 for i in range(100):
@@ -16,6 +17,14 @@ for i in range(100):
 
 
 def compare_item_data(item_tuple, attribute_dict, item_id=0):
+    """
+    Helper function used to compare an item tuple
+    as it comes out of the database with an atribute dictionary
+    as it is used internally by the program to communicate between interfaces.
+    Optionally the internally used item_id can be given as a separate argument.
+    If no item_id is given (or the given item_id has value 0)
+    only the attributes are compared.
+    """
     if item_id == 0:
         item_id = item_tuple[0]
 
@@ -77,3 +86,35 @@ def test_utf8_support():
     # "By default, pysqlite decodes all strings to Unicode,
     # assuming UTF-8 encoding (which SQLite assumes when parsing statements)."
     pass
+
+
+def compare_item_dicts(attribute_dict1, attribute_dict2):
+    """
+    Helper function used to compare two attribute dictionaries.
+    Returns true if they have the same attributes return false otherwise.
+    """
+    return attribute_dict1['name'] == attribute_dict2['name'] and \
+        attribute_dict1['function'] == attribute_dict2['function'] and \
+        attribute_dict1['weight'] == attribute_dict2['weight'] and \
+        attribute_dict1['volume'] == attribute_dict2['volume'] and \
+        attribute_dict1['price'] == attribute_dict2['price'] and \
+        attribute_dict1['amount'] == attribute_dict2['amount']
+
+
+def test_get_all_items_from_db():
+    db = dbi.Database(':memory:')
+    db.initialize_db()
+    n_items = len(item_attributes_list)
+
+    # Add multiple items into the database
+    for i in range(n_items):
+        db.store_new_item_in_db(item_attributes_list[i])
+    # Fetch items from database
+    item_list = db.get_all_items_from_db()
+    # Test if all items have been correctly added
+    assert len(item_list) == n_items
+    # TODO: sort the lists before comparing its elements
+    #       since the database does not need to guarantee
+    #       to return the values in a specific order.
+    for i in range(n_items):
+        assert compare_item_dicts(item_list[i], item_attributes_list[i])
