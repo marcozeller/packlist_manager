@@ -95,7 +95,7 @@ class AddItem(nps.ActionFormV2):
         self.reset_fields()
 
         # go back to main screen
-        self.parentApp.setNextForm('MAIN')
+        self.parentApp.setNextForm(None)
 
 
 class App(nps.NPSAppManaged):
