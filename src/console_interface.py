@@ -39,6 +39,14 @@ class AddItem(nps.ActionFormV2):
     It has an 'OK' button which saves the new item in the database and
     a 'CANCEL' button to leave the formular without changing the database.
     """
+    def reset_fields(self):
+        self._name.value = default_values_new_item['name']
+        self._function.value = default_values_new_item['function']
+        self._weight.value = default_values_new_item['weight']
+        self._volume.value = default_values_new_item['volume']
+        self._price.value = default_values_new_item['price']
+        self._amount.value = default_values_new_item['amount']
+
     def create(self):
         """
         Draws the formular with fields to enter the attributes.
@@ -53,12 +61,7 @@ class AddItem(nps.ActionFormV2):
         self._amount = self.add(nps.TitleText, name=language['amount'])
 
         # fill in the fields with the default values
-        self._name.value = default_values_new_item['name']
-        self._function.value = default_values_new_item['function']
-        self._weight.value = default_values_new_item['weight']
-        self._volume.value = default_values_new_item['volume']
-        self._price.value = default_values_new_item['price']
-        self._amount.value = default_values_new_item['amount']
+        self.reset_fields()
 
     def on_ok(self):
         """
@@ -78,20 +81,21 @@ class AddItem(nps.ActionFormV2):
         self.parentApp.db.store_new_item_in_db(item_data)
 
         # reset to default entries for next time the formular it is used
-        self._name.value = default_values_new_item['name']
-        self._function.value = default_values_new_item['function']
-        self._weight.value = default_values_new_item['weight']
-        self._volume.value = default_values_new_item['volume']
-        self._price.value = default_values_new_item['price']
-        self._amount.value = default_values_new_item['amount']
+        self.reset_fields()
+
+        # go back to main screen
+        self.parentApp.setNextForm('MAIN')
 
     def on_cancel(self):
         """
         Gets called when the 'CANCEL' button is pressed.
         Make no changes to the database and exit the formular.
         """
-        self.parentApp.setNextForm(None)
-        pass
+        # reset to default entries for next time the formular it is used
+        self.reset_fields()
+
+        # go back to main screen
+        self.parentApp.setNextForm('MAIN')
 
 
 class App(nps.NPSAppManaged):
@@ -104,7 +108,7 @@ class App(nps.NPSAppManaged):
         # 'MAIN' is the starting screen
         self.add_item = self.addForm('MAIN',
                                      AddItem,
-                                     name="Add a new Item")
+                                     name=language['add_new_item'])
 
 
 if __name__ == "__main__":
