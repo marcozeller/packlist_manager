@@ -71,7 +71,7 @@ def test_insert_item_via_console_interface():
     nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_RIGHT]
     nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
 
-    # go down in the main menu and press 'CANCEL' to exit the program
+    # go down in the main menu and press 'OK' to save and exit the program
     nps.TEST_SETTINGS['TEST_INPUT'] += 4*[curses.KEY_DOWN]
     nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
 
@@ -87,11 +87,38 @@ def test_insert_item_via_console_interface():
     assert tdi.compare_item_data(item_list[0], test_item)
 
 
+def test_cancel_button_insert_item_via_console_interface():
+    """
+    Add testcase to check if the cancel button works correctly.
+    """
+    # go to add item screen from main menu
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+    # add the item values and press enter
+    insert_item_values_in_fields(test_item)
+    # go to the 'CANCEL' button and press enter to go to main menu without saving
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+    # go down in the main menu and press 'OK' to exit the program
+    nps.TEST_SETTINGS['TEST_INPUT'] += 4*[curses.KEY_DOWN]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+    app = coi.App()
+    app.db_name = ':memory:'
+    app.run(fork=False)  # needs to run "py.test -s" else does not work
+    with app.db.conn:
+        app.db.cursor.execute(""" SELECT * FROM items """)
+        item_list = app.db.cursor.fetchall()
+
+    assert len(item_list) == 0
+
+
 def test_insert_multiple_item_via_console_interface():
     for i in range(10):
         # go to add item screen from main menu
         nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10: code for the Enter Key
-        # add the item values and press 'OK'
+        # add the item values and press enter
         insert_item_values_in_fields(test_item)
         # go to the 'OK' button and press enter to save and get to main menu
         nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
@@ -112,3 +139,26 @@ def test_insert_multiple_item_via_console_interface():
     assert len(item_list) == 10
     for i in range(10):
         assert tdi.compare_item_data(item_list[i], test_item)
+
+
+def test_cancel_button_insert_multiple_item_via_console_interface():
+    for i in range(10):
+        # go to add item screen from main menu
+        nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10: code for the Enter Key
+        # add the item values and press enter
+        insert_item_values_in_fields(test_item)
+        # go to the 'CANCEL' button and press enter to save and get to main menu
+        nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
+        nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10: code for the Enter Key
+
+    # go down in the main menu and press 'CANCEL' to exit the program
+    nps.TEST_SETTINGS['TEST_INPUT'] += 4*[curses.KEY_DOWN]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+    app = coi.App()
+    app.db_name = ':memory:'
+    app.run(fork=False)  # needs to run "py.test -s" else does not work
+    with app.db.conn:
+        app.db.cursor.execute(""" SELECT * FROM items """)
+        item_list = app.db.cursor.fetchall()
+    assert len(item_list) == 0
