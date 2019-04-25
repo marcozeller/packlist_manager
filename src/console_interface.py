@@ -37,7 +37,7 @@ language_english = {'name':         "Name: ",
 language = language_english
 
 
-class MainMenu(nps.ActionFormV2):
+class MainMenu(nps.ActionFormMinimal):
     def go_to_add_item_screen(self):
         self.parentApp.switchForm('ADD_ITEM')
 
@@ -65,9 +65,6 @@ class MainMenu(nps.ActionFormV2):
                  when_pressed_function=self.go_to_list_packs_screen)
 
     def on_ok(self):
-        self.parentApp.setNextForm(None)
-
-    def on_cancel(self):
         self.parentApp.setNextForm(None)
 
 
@@ -136,6 +133,32 @@ class AddItem(nps.ActionFormV2):
         self.parentApp.setNextForm('MAIN')
 
 
+class ItemList(nps.MultiLineAction):
+    def display_value(self, vl):
+        return str(vl['id']) + ': ' + vl['name']
+
+    def actionHighlighted(self, act_on_this, keypress):
+        pass
+        # TODO:
+        # self.parent.parentApp.selected_item = act_on_this
+        # self.parent.parentApp.setNextForm('MAIN')
+
+
+class ListItems(nps.ActionFormMinimal):
+    def create(self):
+        item_list = self.parentApp.db.get_all_items_from_db()
+        self.item_list_widget = self.add(ItemList,
+                                         values=item_list,
+                                         scroll_exit=True,
+                                         exit_right=True)
+
+    def beforeEditing(self):
+        self.item_list_widget.values = self.parentApp.db.get_all_items_from_db()
+
+    def on_ok(self):
+        self.parentApp.setNextForm('MAIN')
+
+
 class App(nps.NPSAppManaged):
     def onStart(self):
         # add an abstract database object to the application
@@ -151,7 +174,7 @@ class App(nps.NPSAppManaged):
                                      AddItem,
                                      name=language['add_new_item'])
         self.add_item = self.addForm('LIST_ITEMS',
-                                     AddItem,
+                                     ListItems,
                                      name=language['list_items'])
         self.add_item = self.addForm('ADD_PACK',
                                      AddItem,
