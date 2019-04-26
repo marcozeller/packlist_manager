@@ -113,7 +113,7 @@ class AddItem(nps.ActionFormV2):
         item_data['amount'] = int(self._amount.value)
 
         # send the dictionary to the database interface
-        self.parentApp.db.store_new_item_in_db(item_data)
+        self.parentApp.db.store_new_item(item_data)
 
         # reset to default entries for next time the formular it is used
         self.reset_fields()
@@ -146,14 +146,14 @@ class ItemList(nps.MultiLineAction):
 
 class ListItems(nps.ActionFormMinimal):
     def create(self):
-        item_list = self.parentApp.db.get_all_items_from_db()
+        item_list = self.parentApp.db.get_all_items()
         self.item_list_widget = self.add(ItemList,
                                          values=item_list,
                                          scroll_exit=True,
                                          exit_right=True)
 
     def beforeEditing(self):
-        self.item_list_widget.values = self.parentApp.db.get_all_items_from_db()
+        self.item_list_widget.values = self.parentApp.db.get_all_items()
 
     def on_ok(self):
         self.parentApp.setNextForm('MAIN')

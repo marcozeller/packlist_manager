@@ -37,12 +37,12 @@ def compare_item_data(item_tuple, attribute_dict, item_id=0):
                           attribute_dict['amount'])
 
 
-def test_initialize_db():
+def test_initialize():
     db = dbi.Database(':memory:')
-    db.initialize_db()
+    db.initialize()
 
     # Test if calling initialization twice breaks the application
-    db.initialize_db()
+    db.initialize()
 
     # Test if the initialization added the table "items"
     with db.conn:
@@ -50,12 +50,12 @@ def test_initialize_db():
         assert len(db.cursor.fetchall()) == 0
 
 
-def test_store_new_item_in_db():
+def test_store_new_item():
     db = dbi.Database(':memory:')
-    db.initialize_db()
+    db.initialize()
 
     # Test if the an item was added
-    db.store_new_item_in_db(item_attributes_list[0])
+    db.store_new_item(item_attributes_list[0])
     with db.conn:
         db.cursor.execute(""" SELECT * FROM items """)
         item_list = db.cursor.fetchall()
@@ -63,14 +63,14 @@ def test_store_new_item_in_db():
     assert compare_item_data(item_list[0], item_attributes_list[0])
 
 
-def test_store_new_items_in_db_multiple_items():
+def test_store_new_item_multiple_items():
     db = dbi.Database(':memory:')
-    db.initialize_db()
+    db.initialize()
     n_items = len(item_attributes_list)
 
     # Add multiple items into the database
     for i in range(n_items):
-        db.store_new_item_in_db(item_attributes_list[i])
+        db.store_new_item(item_attributes_list[i])
     # Fetch items from database
     with db.conn:
         db.cursor.execute(""" SELECT * FROM items """)
@@ -101,16 +101,16 @@ def compare_item_dicts(attribute_dict1, attribute_dict2):
         attribute_dict1['amount'] == attribute_dict2['amount']
 
 
-def test_get_all_items_from_db():
+def test_get_all_items():
     db = dbi.Database(':memory:')
-    db.initialize_db()
+    db.initialize()
     n_items = len(item_attributes_list)
 
     # Add multiple items into the database
     for i in range(n_items):
-        db.store_new_item_in_db(item_attributes_list[i])
+        db.store_new_item(item_attributes_list[i])
     # Fetch items from database
-    item_list = db.get_all_items_from_db()
+    item_list = db.get_all_items()
     # Test if all items have been correctly added
     assert len(item_list) == n_items
     # TODO: sort the lists before comparing its elements

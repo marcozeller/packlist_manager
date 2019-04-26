@@ -19,9 +19,9 @@ class Database:
         self.cursor = self.conn.cursor()
 
         # initialize the database here to take the burden off the user
-        self.initialize_db()
+        self.initialize()
 
-    def initialize_db(self):
+    def initialize(self):
         """
         Creates the tables needed for storing the data if
         they do not already exist.
@@ -38,7 +38,7 @@ class Database:
                                    price integer,
                                    amount integer) """)
 
-    def store_new_item_in_db(self, item_values):
+    def store_new_item(self, item_values):
         """
         Stores a new item in the database.
         item_values is a dict with the attribute's name (String) as key
@@ -62,7 +62,7 @@ class Database:
                                     :amount)""",
                                 item_values)
 
-    def get_all_items_from_db(self):
+    def get_all_items(self):
         """
         Returns a list of dictionaries of all items in the database.
         item_list is a list containg a dictionary for every item
