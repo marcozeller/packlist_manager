@@ -92,6 +92,11 @@ def press_ok_button_from_main_menu():
     nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
 
 
+def go_to_list_item_screen_from_main_menu():
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+
 def test_insert_item_via_console_interface():
     """
     Inserts a single item via the console-interface and check manually
@@ -110,7 +115,6 @@ def test_insert_item_via_console_interface():
     app.db_name = ':memory:'
     app.run(fork=False)  # needs to run "py.test -s" else does not work
 
-    # TODO: Read from database and compare as soon as implemented!
     # manually look into database to see if item has been correctly added
     with app.db.conn:
         app.db.cursor.execute(""" SELECT * FROM items """)
@@ -149,9 +153,8 @@ def test_cancel_button_insert_item_via_console_interface():
 
 def test_insert_multiple_item_via_console_interface():
     """
-    Check if the cancel button in the add item screen works correctly.
-    Inserts a several items via the console-interface and check manually
-    that nothing was added to the database.
+    Inserts several items via the console-interface and check manually
+    if it was added to the database.
     """
     for i in range(10):
         go_to_add_item_screen_from_main_menu()
@@ -167,7 +170,6 @@ def test_insert_multiple_item_via_console_interface():
     app.db_name = ':memory:'
     app.run(fork=False)  # needs to run "py.test -s" else does not work
 
-    # TODO: Read from database and compare as soon as implemented!
     # manually look into database to see if items have been added
     with app.db.conn:
         app.db.cursor.execute(""" SELECT * FROM items """)
@@ -179,8 +181,9 @@ def test_insert_multiple_item_via_console_interface():
 
 def test_cancel_button_insert_multiple_item_via_console_interface():
     """
-    Inserts several items via the console-interface and check manually
-    if it was added to the database.
+    Check if the cancel button in the add item screen works correctly.
+    Inserts a several items via the console-interface and check manually
+    that nothing was added to the database.
     """
     for i in range(10):
         go_to_add_item_screen_from_main_menu()
@@ -201,3 +204,59 @@ def test_cancel_button_insert_multiple_item_via_console_interface():
         app.db.cursor.execute(""" SELECT * FROM items """)
         item_list = app.db.cursor.fetchall()
     assert len(item_list) == 0
+
+
+def test_list_items_after_inserting_single_item():
+    """
+    Inserts a single item via the console-interface and check if there is a
+    corresponding entry in the list items screen.
+    """
+    go_to_add_item_screen_from_main_menu()
+
+    insert_item_values_in_fields(test_item)
+
+    press_ok_button_after_entering_values_in_add_item_screen()
+
+    go_to_list_item_screen_from_main_menu()
+
+    # make sure the list is only one entry long by clicking down
+    # until we are on the 'OK' button and hit it
+    # TODO: This step needs to be revised - figure out how to do that...
+    #       At the moment only fails if to mainy entries are present
+    nps.TEST_SETTINGS['TEST_INPUT'] += [curses.KEY_DOWN]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+    press_ok_button_from_main_menu()
+
+    # run the test-input on the application
+    app = coi.App()
+    app.db_name = ':memory:'
+    app.run(fork=False)  # needs to run "py.test -s" else does not work
+
+
+def test_list_items_after_inserting_multiple_items():
+    """
+    Inserts several items via the console-interface and check if there are
+    corresponding entries in the list items screen.
+    """
+    for i in range(10):
+        go_to_add_item_screen_from_main_menu()
+
+        insert_item_values_in_fields(test_item)
+
+        press_ok_button_after_entering_values_in_add_item_screen()
+
+    go_to_list_item_screen_from_main_menu()
+
+    # make sure the list has the correct number of entries.
+    # TODO: This step needs to be revised - figure out how to do that...
+    #       At the moment only fails if to mainy entries are present
+    nps.TEST_SETTINGS['TEST_INPUT'] += 10*[curses.KEY_DOWN]
+    nps.TEST_SETTINGS['TEST_INPUT'] += [10]  # 10 is the code for the Enter Key
+
+    press_ok_button_from_main_menu()
+
+    # run the test-input on the application
+    app = coi.App()
+    app.db_name = ':memory:'
+    app.run(fork=False)  # needs to run "py.test -s" else does not work
