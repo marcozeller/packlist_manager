@@ -75,21 +75,21 @@ class Database:
             self.cursor.execute("""SELECT * FROM items""")
             items_raw = self.cursor.fetchall()
 
-            # reserve space in list for all items
-            items = len(items_raw)*[None]
+        # reserve space in list for all items
+        items = len(items_raw)*[None]
 
-            # add a dictionary with attributes for every item to the list
-            for index, item_tuple in enumerate(items_raw):
-                item = {'id':       item_tuple[0],
-                        'name':     item_tuple[1],
-                        'function': item_tuple[2],
-                        'weight':   item_tuple[3],
-                        'volume':   item_tuple[4],
-                        'price':    item_tuple[5],
-                        'amount':   item_tuple[6]}
-                items[index] = item
+        # add a dictionary with attributes for every item to the list
+        for index, item_tuple in enumerate(items_raw):
+            item = {'id':       item_tuple[0],
+                    'name':     item_tuple[1],
+                    'function': item_tuple[2],
+                    'weight':   item_tuple[3],
+                    'volume':   item_tuple[4],
+                    'price':    item_tuple[5],
+                    'amount':   item_tuple[6]}
+            items[index] = item
 
-            return items
+        return items
 
 
 if __name__ == "__main__":
