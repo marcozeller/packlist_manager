@@ -31,6 +31,7 @@ language_english = {'name':         "Name: ",
                     'main_menu':    "Main Menu",
                     'add_new_item': "Add a new Item",
                     'list_items':   "List Items",
+                    'edit_item':    "Edit Item",
                     'add_new_pack': "Add a new Pack",
                     'list_packs':   "List Packs"}
 
@@ -138,10 +139,8 @@ class ItemList(nps.MultiLineAction):
         return str(vl['id']) + ': ' + vl['name']
 
     def actionHighlighted(self, act_on_this, keypress):
-        pass
-        # TODO:
-        # self.parent.parentApp.selected_item = act_on_this
-        # self.parent.parentApp.setNextForm('MAIN')
+        self.parent.parentApp.selected_item = act_on_this
+        self.parent.parentApp.switchForm('EDIT_ITEM')
 
 
 class ListItems(nps.ActionFormMinimal):
@@ -157,6 +156,67 @@ class ListItems(nps.ActionFormMinimal):
 
     def on_ok(self):
         self.parentApp.setNextForm('MAIN')
+
+
+class EditItem(nps.ActionFormV2):
+    """
+    Screen containing a formular to edit the attributes of an existing item.
+    It has an 'OK' button which updates the item's value in the database and
+    a 'CANCEL' button to leave the formular without changing the database.
+    """
+    def reset_fields(self):
+        self._name.value = self.parentApp.selected_item['name']
+        self._function.value = self.parentApp.selected_item['function']
+        self._weight.value = str(self.parentApp.selected_item['weight'])
+        self._volume.value = str(self.parentApp.selected_item['volume'])
+        self._price.value = str(self.parentApp.selected_item['price'])
+        self._amount.value = str(self.parentApp.selected_item['amount'])
+
+    def create(self):
+        """
+        Draws the formular with fields to enter the attributes.
+        Fills the field with default values.
+        """
+        # draw the fields needed to enter the attributes
+        self._name = self.add(nps.TitleText, name=language['name'])
+        self._function = self.add(nps.TitleText, name=language['function'])
+        self._weight = self.add(nps.TitleText, name=language['weight'])
+        self._volume = self.add(nps.TitleText, name=language['volume'])
+        self._price = self.add(nps.TitleText, name=language['price'])
+        self._amount = self.add(nps.TitleText, name=language['amount'])
+
+    def beforeEditing(self):
+        # fill in the fields with the default values
+        self.reset_fields()
+
+    def on_ok(self):
+        """
+        Gets called when the 'OK' button is pressed.
+        Updates all the attributes in the database.
+        """
+        # create a dictionary containing the attributes of the new item
+        item_data = {}
+        item_data['name'] = self._name.value
+        item_data['function'] = self._function.value
+        item_data['weight'] = int(self._weight.value)
+        item_data['volume'] = int(self._volume.value)
+        item_data['price'] = int(self._price.value)
+        item_data['amount'] = int(self._amount.value)
+
+        # TODO:
+        # send the dictionary to the database interface
+        # self.parentApp.db.update_item(item_data)
+
+        # go back to main screen
+        self.parentApp.setNextForm('LIST_ITEMS')
+
+    def on_cancel(self):
+        """
+        Gets called when the 'CANCEL' button is pressed.
+        Make no changes to the database and exit the formular.
+        """
+        # go back to main screen
+        self.parentApp.setNextForm('LIST_ITEMS')
 
 
 class App(nps.NPSAppManaged):
@@ -176,6 +236,9 @@ class App(nps.NPSAppManaged):
         self.add_item = self.addForm('LIST_ITEMS',
                                      ListItems,
                                      name=language['list_items'])
+        self.add_item = self.addForm('EDIT_ITEM',
+                                     EditItem,
+                                     name=language['edit_item'])
         self.add_item = self.addForm('ADD_PACK',
                                      AddItem,
                                      name=language['add_new_pack'])
