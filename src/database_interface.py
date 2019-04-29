@@ -91,6 +91,29 @@ class Database:
 
         return items
 
+    def update_item(self, item_values):
+        """
+        Modifies attributes of an existing item in the database.
+        item_values is a dict with the attribute's name (String) as key
+        to the corresponding value.
+        Item's 'id' is an integer internally used for referring to an item
+        read from the database before.
+        The item_values dict must provide a value for the key 'id'
+        if it does not the update it will be ignoered.
+        This function modifies an exiting instance (refered by its id)
+        in the database.
+        """
+        with self.conn:
+            self.cursor.execute("""UPDATE items SET
+                                       name =  :name,
+                                       function = :function,
+                                       weight = :weight,
+                                       volume = :volume,
+                                       price = :price,
+                                       amount = :amount
+                                   WHERE id = :id""",
+                                item_values)
+
 
 if __name__ == "__main__":
     """

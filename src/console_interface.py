@@ -164,7 +164,7 @@ class EditItem(nps.ActionFormV2):
     It has an 'OK' button which updates the item's value in the database and
     a 'CANCEL' button to leave the formular without changing the database.
     """
-    def reset_fields(self):
+    def fill_in_fields(self):
         self._name.value = self.parentApp.selected_item['name']
         self._function.value = self.parentApp.selected_item['function']
         self._weight.value = str(self.parentApp.selected_item['weight'])
@@ -187,7 +187,7 @@ class EditItem(nps.ActionFormV2):
 
     def beforeEditing(self):
         # fill in the fields with the default values
-        self.reset_fields()
+        self.fill_in_fields()
 
     def on_ok(self):
         """
@@ -196,6 +196,7 @@ class EditItem(nps.ActionFormV2):
         """
         # create a dictionary containing the attributes of the new item
         item_data = {}
+        item_data['id'] = self.parentApp.selected_item['id']
         item_data['name'] = self._name.value
         item_data['function'] = self._function.value
         item_data['weight'] = int(self._weight.value)
@@ -203,9 +204,8 @@ class EditItem(nps.ActionFormV2):
         item_data['price'] = int(self._price.value)
         item_data['amount'] = int(self._amount.value)
 
-        # TODO:
         # send the dictionary to the database interface
-        # self.parentApp.db.update_item(item_data)
+        self.parentApp.db.update_item(item_data)
 
         # go back to main screen
         self.parentApp.setNextForm('LIST_ITEMS')
