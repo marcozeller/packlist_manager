@@ -140,7 +140,13 @@ class ItemList(nps.MultiLineAction):
 
     def actionHighlighted(self, act_on_this, keypress):
         self.parent.parentApp.selected_item = act_on_this
-        self.parent.parentApp.switchForm('EDIT_ITEM')
+        if keypress == ord('d'):
+            # delete the item and redraw the screen
+            self.parent.parentApp.db.delete_item(act_on_this)
+            self.parent.parentApp.switchForm('LIST_ITEMS')
+        else:
+            # go to the edit item screen
+            self.parent.parentApp.switchForm('EDIT_ITEM')
 
 
 class ListItems(nps.ActionFormMinimal):
@@ -150,6 +156,11 @@ class ListItems(nps.ActionFormMinimal):
                                          values=item_list,
                                          scroll_exit=True,
                                          exit_right=True)
+
+        # Setup handler for deleting an item from list:
+        # If the key 'd' is pressed call the function
+        # item_list.actionHighlighted automatically with the right paramters.
+        self.handlers[ord('d')] = self.item_list_widget.h_act_on_highlighted
 
     def beforeEditing(self):
         self.item_list_widget.values = self.parentApp.db.get_all_items()

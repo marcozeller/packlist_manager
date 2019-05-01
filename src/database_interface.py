@@ -113,6 +113,22 @@ class Database:
                                    WHERE id = :id""",
                                 item_values)
 
+    def delete_item(self, item_values):
+        """
+        This function deletes an existing instance (refered by its id)
+        of item in the database with the values provided in item_values.
+        item_values must be a dict with an integer value for the key 'id'.
+        Item's 'id' is an integer internally used for referring to an item
+        read from the database before.
+        The item_values dict must provide a value for the key 'id'
+        if it does not, nothing will be deleted.
+        """
+        # TODO: Maybe only mark as deleted and provide an additional function
+        #       to irevertible delete it.
+        with self.conn:
+            self.cursor.execute("""DELETE FROM items WHERE id = :id""",
+                                item_values)
+
 
 if __name__ == "__main__":
     """
