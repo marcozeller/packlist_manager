@@ -3,9 +3,10 @@
 import database_interface as dbi
 
 # Produce some test data:
-item_attributes_list = []
+n_items = 100
+item_attributes_list = n_items*[None]
 
-for i in range(100):
+for i in range(n_items):
     item_attributes = {'name': 'Name' + str(i+1),
                        'function': 'Function' + str(i+1),
                        'weight': 0,
@@ -13,7 +14,7 @@ for i in range(100):
                        'price': 0,
                        'amount': 0}
 
-    item_attributes_list.append(item_attributes)
+    item_attributes_list[i] = (item_attributes)
 
 
 def compare_item_data(item_tuple, attribute_dict, item_id=0):
@@ -66,7 +67,6 @@ def test_store_new_item():
 def test_store_new_item_multiple_items():
     db = dbi.Database(':memory:')
     db.initialize()
-    n_items = len(item_attributes_list)
 
     # Add multiple items into the database
     for i in range(n_items):
@@ -104,7 +104,6 @@ def compare_item_dicts(attribute_dict1, attribute_dict2):
 def test_get_all_items():
     db = dbi.Database(':memory:')
     db.initialize()
-    n_items = len(item_attributes_list)
 
     # Add multiple items into the database
     for i in range(n_items):
@@ -118,3 +117,37 @@ def test_get_all_items():
     #       to return the values in a specific order.
     for i in range(n_items):
         assert compare_item_dicts(item_list[i], item_attributes_list[i])
+
+
+def test_update_item():
+    db = dbi.Database(':memory:')
+    db.initialize()
+
+    # Add multiple items into the database
+    for i in range(n_items):
+        db.store_new_item(item_attributes_list[i])
+
+    modified_item_list = 100*[None]
+    for i in range(100):
+        item_attributes = {'id': i+1,
+                           'name': 'NewName' + str(i+1),
+                           'function': 'NewFunction' + str(i+1),
+                           'weight': i+1,
+                           'volume': i+1,
+                           'price': i+1,
+                           'amount': i+1}
+        db.update_item(item_attributes)
+        modified_item_list[i] = item_attributes
+
+    # Fetch items from database
+    item_list = db.get_all_items()
+
+    # Test if the exact number of items are beeing read from database
+    assert len(item_list) == n_items
+    assert len(item_list) == len(modified_item_list)
+    # TODO: sort the lists before comparing its elements
+    #       since the database does not need to guarantee
+    #       to return the values in a specific order.
+    for i in range(n_items):
+        assert not compare_item_dicts(item_list[i], item_attributes_list[i])
+        assert compare_item_dicts(item_list[i], modified_item_list[i])
