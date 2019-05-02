@@ -38,6 +38,11 @@ class Database:
                                    price integer,
                                    amount integer) """)
 
+            self.cursor.execute("""CREATE TABLE IF NOT EXISTS packs(
+                                   id integer primary key autoincrement,
+                                   name text,
+                                   function text) """)
+
     def store_new_item(self, item_values):
         """
         Stores a new item in the database.
@@ -128,6 +133,26 @@ class Database:
         with self.conn:
             self.cursor.execute("""DELETE FROM items WHERE id = :id""",
                                 item_values)
+
+    def store_new_pack(self, pack_values):
+        """
+        Stores a new pack in the database.
+        pack_values is a dict with the attribute's name (String) as key
+        to the corresponding value.
+        Pack's 'id' is an integer internally used for referring to a pack
+        read from the database before.
+        The pack_values dict should not provide a value for the key 'id'
+        if it does it will be ignoered.
+        This function creates a new instance (= new id) of this pack
+        in the database.
+        """
+        with self.conn:
+            pack_values['id'] = None
+            self.cursor.execute("""INSERT INTO packs VALUES
+                                   (:id,
+                                    :name,
+                                    :function)""",
+                                pack_values)
 
 
 if __name__ == "__main__":
