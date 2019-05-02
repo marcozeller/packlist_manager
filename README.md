@@ -2,14 +2,15 @@
 Console interface tool written in python to create and manage packing lists with hierarchical structures.
 
 # Implemented Features
-
-# Planned Features
-## Basic Features
 * First Functional Release
   * Store new Items in Database
   * List all Items in Database
   * Show an Item in Database
-  * Modify an Item in Database
+  * Modify and delete an Item in Database
+
+# Planned Features
+## Basic Features
+* First Functional Release
   * Store new Packs in Database without included Packs
   * List all Packs in Database
   * Show a Pack in Database without included Packs

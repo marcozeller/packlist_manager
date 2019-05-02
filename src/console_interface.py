@@ -10,10 +10,10 @@ import npyscreen as nps
 import database_interface as dbi
 
 __author__ = "Marco Zeller"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __license__ = "MIT"
 
-db_name = ':memory:'
+db_name = 'databases/manual_testing.db'
 
 default_values_new_item = {'name':     "Name",
                            'function': "Function",
