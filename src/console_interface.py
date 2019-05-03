@@ -22,6 +22,9 @@ default_values_new_item = {'name':     "Name",
                            'price':    "0",
                            'amount':   "0"}
 
+default_values_new_pack = {'name':     "Name",
+                           'function': "Function"}
+
 language_english = {'name':         "Name: ",
                     'function':     "Function: ",
                     'weight':       "Weight: ",
@@ -136,7 +139,7 @@ class AddItem(nps.ActionFormV2):
 
 class ItemList(nps.MultiLineAction):
     def display_value(self, vl):
-        return str(vl['id']) + ': ' + vl['name']
+        return vl['name'] + ' (id = ' + str(vl['id']) + ')'
 
     def actionHighlighted(self, act_on_this, keypress):
         self.parent.parentApp.selected_item = act_on_this
@@ -230,6 +233,102 @@ class EditItem(nps.ActionFormV2):
         self.parentApp.setNextForm('LIST_ITEMS')
 
 
+class ChooseItems(nps.MultiSelectAction):
+    def display_value(self, vl):
+        return str(vl['selected']) + 'x :' + vl['name']
+
+    def actionHighlighted(self, act_on_this, keypress):
+        if keypress == ord('+'):
+            # increase the selected amount
+            act_on_this['selected'] += 1
+            # set selected if was zero before
+            if act_on_this['selected'] == 1:
+                self.h_select_toggle(keypress)
+
+        elif keypress == ord('-'):
+            # decrease the selected amount only if positive
+            if act_on_this['selected'] > 0:
+                act_on_this['selected'] -= 1
+                # unselect if reches zero
+                if act_on_this['selected'] == 0:
+                    self.h_select_toggle(keypress)
+        else:
+            # TODO: open popup to select amount using slider
+            pass
+
+
+class AddPack(nps.ActionFormV2):
+    """
+    Screen containing a formular to enter the attributes of a new pack.
+    It has an 'OK' button which saves the new pack in the database and
+    a 'CANCEL' button to leave the formular without changing the database.
+    """
+    def reset_fields(self):
+        self._name.value = default_values_new_pack['name']
+        self._function.value = default_values_new_pack['function']
+
+    def create(self):
+        """
+        Draws the formular with fields to enter the attributes.
+        Fills the field with default values.
+        """
+        # draw the fields needed to enter the attributes
+        self._name = self.add(nps.TitleText, name=language['name'])
+        self._function = self.add(nps.TitleText, name=language['function'])
+
+        item_list = self.parentApp.db.get_all_items()
+        for item in item_list:
+            item['selected'] = 0
+        self.item_chooser = self.add(ChooseItems,
+                                     values=item_list,
+                                     scroll_exit=True,
+                                     exit_right=True)
+
+        # Setup handler for deleting an item from list:
+        # If the key 'd' is pressed call the function
+        # item_list.actionHighlighted automatically with the right paramters.
+        self.handlers[ord('+')] = self.item_chooser.h_act_on_highlighted
+        self.handlers[ord('-')] = self.item_chooser.h_act_on_highlighted
+
+        # fill in the fields with the default values
+        self.reset_fields()
+
+    def beforeEditing(self):
+        self.item_chooser.values = self.parentApp.db.get_all_items()
+        for item in self.item_chooser.values:
+            item['selected'] = 0
+
+    def on_ok(self):
+        """
+        Gets called when the 'OK' button is pressed.
+        Saves all the attributes into the database.
+        """
+        # create a dictionary containing the attributes of the new pack
+        pack_data = {}
+        pack_data['name'] = self._name.value
+        pack_data['function'] = self._function.value
+
+        # send the dictionary to the database interface
+        self.parentApp.db.store_new_pack(pack_data)
+
+        # reset to default entries for next time the formular it is used
+        self.reset_fields()
+
+        # go back to main screen
+        self.parentApp.setNextForm('MAIN')
+
+    def on_cancel(self):
+        """
+        Gets called when the 'CANCEL' button is pressed.
+        Make no changes to the database and exit the formular.
+        """
+        # reset to default entries for next time the formular it is used
+        self.reset_fields()
+
+        # go back to main screen
+        self.parentApp.setNextForm('MAIN')
+
+
 class App(nps.NPSAppManaged):
     def onStart(self):
         # add an abstract database object to the application
@@ -251,7 +350,7 @@ class App(nps.NPSAppManaged):
                                      EditItem,
                                      name=language['edit_item'])
         self.add_item = self.addForm('ADD_PACK',
-                                     AddItem,
+                                     AddPack,
                                      name=language['add_new_pack'])
         self.add_item = self.addForm('LIST_PACKS',
                                      AddItem,
