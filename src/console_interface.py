@@ -256,6 +256,9 @@ class ChooseItems(nps.MultiSelectAction):
             # TODO: open popup to select amount using slider
             pass
 
+    def actionSelected(self, act_on_these, keypress):
+        return act_on_these
+
 
 class AddPack(nps.ActionFormV2):
     """
@@ -271,7 +274,9 @@ class AddPack(nps.ActionFormV2):
         """
         Draws the formular with fields to enter the attributes.
         Fills the field with default values.
+        Draws a list of items to choose from.
         """
+        # TODO: Draws a list of packs to choose from.
         # draw the fields needed to enter the attributes
         self._name = self.add(nps.TitleText, name=language['name'])
         self._function = self.add(nps.TitleText, name=language['function'])
@@ -284,8 +289,11 @@ class AddPack(nps.ActionFormV2):
                                      scroll_exit=True,
                                      exit_right=True)
 
-        # Setup handler for deleting an item from list:
-        # If the key 'd' is pressed call the function
+        # there seems to be a bug in the library this fixes it
+        self.item_chooser.vale = self.item_chooser.values
+
+        # Setup handler for selecting and unselecting items from list:
+        # If the key '+' or '-' is pressed call the function
         # item_list.actionHighlighted automatically with the right paramters.
         self.handlers[ord('+')] = self.item_chooser.h_act_on_highlighted
         self.handlers[ord('-')] = self.item_chooser.h_act_on_highlighted
@@ -297,6 +305,7 @@ class AddPack(nps.ActionFormV2):
         self.item_chooser.values = self.parentApp.db.get_all_items()
         for item in self.item_chooser.values:
             item['selected'] = 0
+        self.item_chooser.h_select_none('r')
 
     def on_ok(self):
         """
@@ -309,7 +318,8 @@ class AddPack(nps.ActionFormV2):
         pack_data['function'] = self._function.value
 
         # send the dictionary to the database interface
-        self.parentApp.db.store_new_pack(pack_data)
+        included_items = self.item_chooser.h_act_on_selected('a')
+        self.parentApp.db.store_new_pack(pack_data, included_items)
 
         # reset to default entries for next time the formular it is used
         self.reset_fields()

@@ -30,7 +30,7 @@ class Database:
         """
         with self.conn:
             self.cursor.execute("""CREATE TABLE IF NOT EXISTS items(
-                                   id integer primary key autoincrement,
+                                   id integer PRIMARY KEY,
                                    name text,
                                    function text,
                                    weight integer,
@@ -39,9 +39,18 @@ class Database:
                                    amount integer) """)
 
             self.cursor.execute("""CREATE TABLE IF NOT EXISTS packs(
-                                   id integer primary key autoincrement,
+                                   id integer PRIMARY KEY,
                                    name text,
                                    function text) """)
+
+            self.cursor.execute("""CREATE TABLE IF NOT EXISTS included_items(
+                                   pack integer,
+                                   item integer,
+                                   amount integer,
+                                   PRIMARY KEY (pack, item),
+                                   FOREIGN KEY (pack) REFERENCES packs(id),
+                                   FOREIGN KEY (item) REFERENCES items(id))
+                                   """)
 
     def store_new_item(self, item_values):
         """
@@ -134,7 +143,7 @@ class Database:
             self.cursor.execute("""DELETE FROM items WHERE id = :id""",
                                 item_values)
 
-    def store_new_pack(self, pack_values):
+    def store_new_pack(self, pack_values, included_items):
         """
         Stores a new pack in the database.
         pack_values is a dict with the attribute's name (String) as key
@@ -153,6 +162,21 @@ class Database:
                                     :name,
                                     :function)""",
                                 pack_values)
+
+            pack_values['id'] = self.cursor.lastrowid
+
+            # catch and handle empty packs
+            if included_items is None:
+                included_items = []
+
+            for item in included_items:
+                self.cursor.execute("""INSERT INTO included_items VALUES
+                                       (:pack_id,
+                                        :item_id,
+                                        :selected)""",
+                                    {'pack_id': pack_values['id'],
+                                     'item_id': item['id'],
+                                     'selected': item['selected']})
 
 
 if __name__ == "__main__":
