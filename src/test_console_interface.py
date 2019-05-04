@@ -404,3 +404,11 @@ def test_update_items_cancel_button():
     for i in range(10):
         assert tdi.compare_item_data(item_list[i], test_item)
         assert not tdi.compare_item_data(item_list[i], new_item)
+
+
+def test_delete_items():
+    pass
+
+
+def test_add_new_packs():
+    pass

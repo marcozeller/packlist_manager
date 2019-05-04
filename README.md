@@ -7,11 +7,11 @@ Console interface tool written in python to create and manage packing lists with
   * List all Items in Database
   * Show an Item in Database
   * Modify and delete an Item in Database
+  * Store new Packs in Database without included Packs
 
 # Planned Features
 ## Basic Features
 * First Functional Release
-  * Store new Packs in Database without included Packs
   * List all Packs in Database
   * Show a Pack in Database without included Packs
   * Modify a Pack in Database without included Packs
@@ -19,6 +19,7 @@ Console interface tool written in python to create and manage packing lists with
   * Show a Pack in Database with included Packs
   * Modify a Pack in Database with included Packs
   * Make it possible for the Database to be imported and converted for future releases
+  * Fast (rewritten) tests for all the functionalities
 
 * Add Security Constraints (e.g. no including loops) on DB-Level and User-Level
 * Add NeedToBuy function

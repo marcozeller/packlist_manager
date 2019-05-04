@@ -151,3 +151,13 @@ def test_update_item():
     for i in range(n_items):
         assert not compare_item_dicts(item_list[i], item_attributes_list[i])
         assert compare_item_dicts(item_list[i], modified_item_list[i])
+
+
+def test_delete_item():
+    # TODO: implement this test
+    pass
+
+
+def test_store_new_pack():
+    # TODO: implement this test
+    pass
