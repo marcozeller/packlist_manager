@@ -161,3 +161,8 @@ def test_delete_item():
 def test_store_new_pack():
     # TODO: implement this test
     pass
+
+
+def test_get_all_packs():
+    # TODO: implement this test
+    pass

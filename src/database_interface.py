@@ -79,7 +79,7 @@ class Database:
     def get_all_items(self):
         """
         Returns a list of dictionaries of all items in the database.
-        item_list is a list containg a dictionary for every item
+        The return value is a list containg a dictionary for every item
         with the attribute's name (String) as key to the corresponding value.
         Item's 'id' can be used later when referring to an item
         read from the database using this function.
@@ -177,6 +177,31 @@ class Database:
                                     {'pack_id': pack_values['id'],
                                      'item_id': item['id'],
                                      'selected': item['selected']})
+
+    def get_all_packs(self):
+        """
+        Returns a list of dictionaries of all packs in the database.
+        The return value is a list containg a dictionary for every pack
+        with the attribute's name (String) as key to the corresponding value.
+        Pack's 'id' can be used later when referring to a pack
+        read from the database using this function.
+        """
+        with self.conn:
+            # get the raw item-data from the database
+            self.cursor.execute("""SELECT * FROM packs""")
+            packs_raw = self.cursor.fetchall()
+
+        # reserve space in list for all packs
+        packs = len(packs_raw)*[None]
+
+        # add a dictionary with attributes for every pack to the list
+        for index, pack_tuple in enumerate(packs_raw):
+            item = {'id':       pack_tuple[0],
+                    'name':     pack_tuple[1],
+                    'function': pack_tuple[2]}
+            packs[index] = item
+
+        return packs
 
 
 if __name__ == "__main__":

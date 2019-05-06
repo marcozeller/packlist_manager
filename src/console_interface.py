@@ -36,7 +36,8 @@ language_english = {'name':         "Name: ",
                     'list_items':   "List Items",
                     'edit_item':    "Edit Item",
                     'add_new_pack': "Add a new Pack",
-                    'list_packs':   "List Packs"}
+                    'list_packs':   "List Packs",
+                    'edit_pack':    "Edit Pack"}
 
 language = language_english
 
@@ -339,6 +340,48 @@ class AddPack(nps.ActionFormV2):
         self.parentApp.setNextForm('MAIN')
 
 
+class PackList(nps.MultiLineAction):
+    def display_value(self, vl):
+        return vl['name'] + ' (id = ' + str(vl['id']) + ')'
+
+    def actionHighlighted(self, act_on_this, keypress):
+        self.parent.parentApp.selected_pack = act_on_this
+        if keypress == ord('d'):
+            # delete the item and redraw the screen
+            # TODO:
+            # self.parent.parentApp.db.delete_pack(act_on_this)
+            self.parent.parentApp.switchForm('LIST_PACKS')
+        else:
+            # go to the edit item screen
+            self.parent.parentApp.switchForm('EDIT_PACK')
+
+
+class ListPacks(nps.ActionFormMinimal):
+    def create(self):
+        pack_list = self.parentApp.db.get_all_packs()
+        self.pack_list_widget = self.add(PackList,
+                                         values=pack_list,
+                                         scroll_exit=True,
+                                         exit_right=True)
+
+        # Setup handler for deleting an item from list:
+        # If the key 'd' is pressed call the function
+        # item_list.actionHighlighted automatically with the right paramters.
+        self.handlers[ord('d')] = self.pack_list_widget.h_act_on_highlighted
+
+    def beforeEditing(self):
+        self.pack_list_widget.values = self.parentApp.db.get_all_packs()
+
+    def on_ok(self):
+        self.parentApp.setNextForm('MAIN')
+
+
+class EditPack(nps.ActionFormV2):
+    # TODO:
+    def on_cancel(self):
+        self.parentApp.setNextForm('MAIN')
+
+
 class App(nps.NPSAppManaged):
     def onStart(self):
         # add an abstract database object to the application
@@ -363,8 +406,11 @@ class App(nps.NPSAppManaged):
                                      AddPack,
                                      name=language['add_new_pack'])
         self.add_item = self.addForm('LIST_PACKS',
-                                     AddItem,
+                                     ListPacks,
                                      name=language['list_packs'])
+        self.add_item = self.addForm('EDIT_PACK',
+                                     EditPack,
+                                     name=language['edit_pack'])
 
 
 if __name__ == "__main__":
