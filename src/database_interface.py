@@ -203,6 +203,24 @@ class Database:
 
         return packs
 
+    def delete_pack(self, pack_values):
+        """
+        This function deletes an existing instance (refered by its id)
+        of pack in the database with the values provided in pack_values.
+        pack_values must be a dict with an integer value for the key 'id'.
+        Pack's 'id' is an integer internally used for referring to a pack
+        read from the database before.
+        The pack dict must provide a value for the key 'id'
+        if it does not, nothing will be deleted.
+        """
+        # TODO: Maybe only mark as deleted and provide an additional function
+        #       to irevertible delete it.
+        with self.conn:
+            self.cursor.execute("""DELETE FROM packs WHERE id = :id""",
+                                pack_values)
+            self.cursor.execute("""DELETE FROM included_items WHERE pack = :id""",
+                                pack_values)
+
 
 if __name__ == "__main__":
     """

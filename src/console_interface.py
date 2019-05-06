@@ -209,7 +209,7 @@ class EditItem(nps.ActionFormV2):
         Gets called when the 'OK' button is pressed.
         Updates all the attributes in the database.
         """
-        # create a dictionary containing the attributes of the new item
+        # create a dictionary containing the new attributes of the item
         item_data = {}
         item_data['id'] = self.parentApp.selected_item['id']
         item_data['name'] = self._name.value
@@ -348,8 +348,7 @@ class PackList(nps.MultiLineAction):
         self.parent.parentApp.selected_pack = act_on_this
         if keypress == ord('d'):
             # delete the item and redraw the screen
-            # TODO:
-            # self.parent.parentApp.db.delete_pack(act_on_this)
+            self.parent.parentApp.db.delete_pack(act_on_this)
             self.parent.parentApp.switchForm('LIST_PACKS')
         else:
             # go to the edit item screen
@@ -377,9 +376,62 @@ class ListPacks(nps.ActionFormMinimal):
 
 
 class EditPack(nps.ActionFormV2):
-    # TODO:
+    """
+    Screen containing a formular to edit the attributes of an existing pack.
+    It has an 'OK' button which updates the pack's values in the database and
+    a 'CANCEL' button to leave the formular without changing the database.
+    """
+    def fill_in_fields(self):
+        self._name.value = self.parentApp.selected_pack['name']
+        self._function.value = self.parentApp.selected_pack['function']
+        # pack_values = self.parentApp.db.get_attributes_pack()
+        # self._weight.value = str(self.pack_values['weight'])
+        # self._volume.value = str(self.pack_values['volume'])
+        # self._price.value = str(self.pack_values['price'])
+        # self._amount.value = str(self.pack_values['amount'])
+
+    def create(self):
+        """
+        Draws the formular with fields to enter the attributes.
+        Fills the field with default values.
+        """
+        # draw the fields needed to enter the attributes
+        self._name = self.add(nps.TitleText, name=language['name'])
+        self._function = self.add(nps.TitleText, name=language['function'])
+        self._weight = self.add(nps.TitleFixedText, name=language['weight'])
+        self._volume = self.add(nps.TitleFixedText, name=language['volume'])
+        self._price = self.add(nps.TitleFixedText, name=language['price'])
+        self._amount = self.add(nps.TitleFixedText, name=language['amount'])
+
+    def beforeEditing(self):
+        # fill in the fields with the default values
+        self.fill_in_fields()
+
+    def on_ok(self):
+        """
+        Gets called when the 'OK' button is pressed.
+        Updates all the attributes in the database.
+        """
+        # create a dictionary containing the new attributes pack
+        pack_data = {}
+        pack_data['id'] = self.parentApp.selected_pack['id']
+        pack_data['name'] = self._name.value
+        pack_data['function'] = self._function.value
+
+        # send the dictionary to the database interface
+        # TODO
+        # self.parentApp.db.update_pack(pack_data)
+
+        # go back to main screen
+        self.parentApp.setNextForm('LIST_PACKS')
+
     def on_cancel(self):
-        self.parentApp.setNextForm('MAIN')
+        """
+        Gets called when the 'CANCEL' button is pressed.
+        Make no changes to the database and exit the formular.
+        """
+        # go back to main screen
+        self.parentApp.setNextForm('LIST_PACKS')
 
 
 class App(nps.NPSAppManaged):
