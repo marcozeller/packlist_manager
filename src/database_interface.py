@@ -221,6 +221,50 @@ class Database:
             self.cursor.execute("""DELETE FROM included_items WHERE pack = :id""",
                                 pack_values)
 
+    def get_attributes_pack(self, pack):
+        # create a dictionary with the known return values
+        pack_values = {'id':       pack['id'],
+                       'name':     pack['name'],
+                       'function': pack['function'],
+                       'weight':   0,
+                       'volume':   0,
+                       'price':    0,
+                       'amount':   None}
+        # amount gets overwritten later: with None as default value
+        # a bug might be detected earlier
+
+        with self.conn:
+            # get the raw data for all included items from the database
+            self.cursor.execute("""SELECT * FROM items
+                                   INNER JOIN included_items
+                                   ON items.id = included_items.item
+                                   AND included_items.pack = :id""",
+                                pack)
+            included_items_raw = self.cursor.fetchall()
+
+        # go through all items and update pack_values accordingly
+        for index, included_item in enumerate(included_items_raw):
+            # read out the needed values from the raw data tuple
+            weight = included_item[3]
+            volume = included_item[4]
+            price = included_item[5]
+            amount_available = included_item[6]
+            amount_selected = included_item[9]
+
+            # update values according to item's attribute and amount selected
+            pack_values['weight'] += amount_selected * weight
+            pack_values['price'] += amount_selected * price
+            pack_values['volume'] += amount_selected * volume
+            amount = amount_available // amount_selected
+
+            if index == 0:
+                pack_values['amount'] = amount
+            else:
+                pack_values['amount'] = min(amount,
+                                            pack_values['amount'])
+
+        return pack_values
+
 
 if __name__ == "__main__":
     """

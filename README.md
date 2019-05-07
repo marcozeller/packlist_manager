@@ -8,11 +8,12 @@ Console interface tool written in python to create and manage packing lists with
   * Show an Item in Database
   * Modify and delete an Item in Database
   * Store new Packs in Database without included Packs
+  * List all Packs in Database
+
 
 # Planned Features
 ## Basic Features
 * First Functional Release
-  * List all Packs in Database
   * Show a Pack in Database without included Packs
   * Modify a Pack in Database without included Packs
   * Store new Packs in Database with included Packs

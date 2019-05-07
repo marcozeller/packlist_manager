@@ -382,13 +382,18 @@ class EditPack(nps.ActionFormV2):
     a 'CANCEL' button to leave the formular without changing the database.
     """
     def fill_in_fields(self):
-        self._name.value = self.parentApp.selected_pack['name']
-        self._function.value = self.parentApp.selected_pack['function']
-        # pack_values = self.parentApp.db.get_attributes_pack()
-        # self._weight.value = str(self.pack_values['weight'])
-        # self._volume.value = str(self.pack_values['volume'])
-        # self._price.value = str(self.pack_values['price'])
-        # self._amount.value = str(self.pack_values['amount'])
+        pack = self.parentApp.selected_pack
+        self._name.value = pack['name']
+        self._function.value = pack['function']
+
+        # get the calculated values for the selected_pack
+        pack_values = self.parentApp.db.get_attributes_pack(pack)
+
+        # fill in the fields accordingly
+        self._weight.value = str(pack_values['weight'])
+        self._volume.value = str(pack_values['volume'])
+        self._price.value = str(pack_values['price'])
+        self._amount.value = str(pack_values['amount'])
 
     def create(self):
         """
