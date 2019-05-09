@@ -154,6 +154,10 @@ class Database:
         if it does it will be ignoered.
         This function creates a new instance (= new id) of this pack
         in the database.
+        The parameter included_items is a list of dictionaries each dictionary
+        must contain a value to the key 'id' which refers to an item in the
+        database and a value to the key 'selected' which is an integer > 0
+        which represents how many times the item is selected in a pack.
         """
         with self.conn:
             pack_values['id'] = None
@@ -222,10 +226,23 @@ class Database:
                                 pack_values)
 
     def get_attributes_pack(self, pack):
+        """
+        Returns a dictionary with all attributes of a pack from the database.
+        The parameter pack is a dictionary with an integer value for the key
+        'id' representing it's internal reference for the database.
+        The return value is a dictionary with the attribute's name (String) as
+        key to the corresponding value.
+        In case pack had stored some values for other keys than 'id' these will
+        be overwritten with the values from the database.
+        The values for 'weight', 'volume', 'price', and 'amount' are calculated
+        recursively from the included items and packs.
+        The value for 'amount' stands for how many packs of these type can be
+        built with the available amounts of items.
+        """
         # create a dictionary with the known return values
         pack_values = {'id':       pack['id'],
-                       'name':     pack['name'],
-                       'function': pack['function'],
+                       'name':     None,
+                       'function': None,
                        'weight':   0,
                        'volume':   0,
                        'price':    0,
@@ -245,6 +262,8 @@ class Database:
         # go through all items and update pack_values accordingly
         for index, included_item in enumerate(included_items_raw):
             # read out the needed values from the raw data tuple
+            name = included_item[1]
+            function = included_item[2]
             weight = included_item[3]
             volume = included_item[4]
             price = included_item[5]
@@ -252,6 +271,8 @@ class Database:
             amount_selected = included_item[9]
 
             # update values according to item's attribute and amount selected
+            pack_values['name'] = name
+            pack_values['function'] = function
             pack_values['weight'] += amount_selected * weight
             pack_values['price'] += amount_selected * price
             pack_values['volume'] += amount_selected * volume
@@ -264,6 +285,77 @@ class Database:
                                             pack_values['amount'])
 
         return pack_values
+
+    def get_items_in_pack(self, pack):
+        """
+        Returns a list of dictionaries, containing the attributes of all the
+        items included in the by the argument specified pack.
+        The parameter pack is a dictionary with an integer value for the key
+        'id' representing it's internal reference for the database.
+        The dictionaries have in addtion to the standard values a value to the
+        key 'selected' which is an integer > 0 which represents how many timess
+        the item is selected in a pack.
+        """
+        with self.conn:
+            # get the raw data for all included items from the database
+            self.cursor.execute("""SELECT * FROM items
+                                   INNER JOIN included_items
+                                   ON items.id = included_items.item
+                                   AND included_items.pack = :id""",
+                                pack)
+            included_items_raw = self.cursor.fetchall()
+
+        # reserve space in list for all items
+        included_items = len(included_items_raw)*[None]
+
+        # add a dictionary with attributes for every item to the list
+        for index, item_tuple in enumerate(included_items_raw):
+            item = {'id':       item_tuple[0],
+                    'name':     item_tuple[1],
+                    'function': item_tuple[2],
+                    'weight':   item_tuple[3],
+                    'volume':   item_tuple[4],
+                    'price':    item_tuple[5],
+                    'amount':   item_tuple[6],
+                    'selected': item_tuple[9]}
+            included_items[index] = item
+
+        return included_items
+
+    def get_items_not_in_pack(self, pack):
+        """
+        Returns a list of dictionaries, containing the attributes of all the
+        items not included in the by the argument specified pack.
+        The parameter pack is a dictionary with an integer value for the key
+        'id' representing it's internal reference for the database.
+        For convenience the dictionaries have a value to the key 'selected'
+        which is initialised with 0.
+        """
+        with self.conn:
+            # get the raw data for all not included items from the database
+            self.cursor.execute("""SELECT * FROM items
+                                   LEFT JOIN included_items
+                                   ON items.id = included_items.item
+                                   AND included_items.pack NOT IN (:id)""",
+                                pack)
+            not_included_items_raw = self.cursor.fetchall()
+
+        # reserve space in list for all items
+        not_included_items = len(not_included_items_raw)*[None]
+
+        # add a dictionary with attributes for every item to the list
+        for index, item_tuple in enumerate(not_included_items_raw):
+            item = {'id':              item_tuple[0],
+                    'name':            item_tuple[1],
+                    'function':        item_tuple[2],
+                    'weight':          item_tuple[3],
+                    'volume':          item_tuple[4],
+                    'price':           item_tuple[5],
+                    'amount':          item_tuple[6],
+                    'selected': 0}
+            not_included_items[index] = item
+
+        return not_included_items
 
 
 if __name__ == "__main__":

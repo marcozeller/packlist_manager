@@ -410,5 +410,13 @@ def test_delete_items():
     pass
 
 
-def test_add_new_packs():
+def test_add_new_packs_only_with_items():
+    pass
+
+
+def test_list_all_packs():
+    pass
+
+
+def test_show_attributes_of_a_pack_only_with_items():
     pass

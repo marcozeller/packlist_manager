@@ -166,3 +166,18 @@ def test_store_new_pack():
 def test_get_all_packs():
     # TODO: implement this test
     pass
+
+
+def test_get_attributes_pack():
+    # TODO: implement this test
+    pass
+
+
+def test_get_items_in_pack():
+    # TODO: implement this test
+    pass
+
+
+def test_get_items_not_in_pack():
+    # TODO: implement this test
+    pass

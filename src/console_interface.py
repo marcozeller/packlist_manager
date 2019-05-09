@@ -10,7 +10,7 @@ import npyscreen as nps
 import database_interface as dbi
 
 __author__ = "Marco Zeller"
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 __license__ = "MIT"
 
 db_name = 'databases/manual_testing.db'
@@ -40,7 +40,6 @@ language_english = {'name':         "Name: ",
                     'edit_pack':    "Edit Pack"}
 
 language = language_english
-
 
 class MainMenu(nps.ActionFormMinimal):
     def go_to_add_item_screen(self):
@@ -165,6 +164,7 @@ class ListItems(nps.ActionFormMinimal):
         # If the key 'd' is pressed call the function
         # item_list.actionHighlighted automatically with the right paramters.
         self.handlers[ord('d')] = self.item_list_widget.h_act_on_highlighted
+        # TODO: remove unneeded handlers
 
     def beforeEditing(self):
         self.item_list_widget.values = self.parentApp.db.get_all_items()
@@ -238,6 +238,9 @@ class ChooseItems(nps.MultiSelectAction):
     def display_value(self, vl):
         return str(vl['selected']) + 'x :' + vl['name']
 
+    def before_editing(self):
+        self.h_select()
+
     def actionHighlighted(self, act_on_this, keypress):
         if keypress == ord('+'):
             # increase the selected amount
@@ -298,6 +301,7 @@ class AddPack(nps.ActionFormV2):
         # item_list.actionHighlighted automatically with the right paramters.
         self.handlers[ord('+')] = self.item_chooser.h_act_on_highlighted
         self.handlers[ord('-')] = self.item_chooser.h_act_on_highlighted
+        # TODO: remove unneeded handlers
 
         # fill in the fields with the default values
         self.reset_fields()
@@ -367,6 +371,7 @@ class ListPacks(nps.ActionFormMinimal):
         # If the key 'd' is pressed call the function
         # item_list.actionHighlighted automatically with the right paramters.
         self.handlers[ord('d')] = self.pack_list_widget.h_act_on_highlighted
+        # TODO: remove unneeded handlers
 
     def beforeEditing(self):
         self.pack_list_widget.values = self.parentApp.db.get_all_packs()
@@ -408,9 +413,37 @@ class EditPack(nps.ActionFormV2):
         self._price = self.add(nps.TitleFixedText, name=language['price'])
         self._amount = self.add(nps.TitleFixedText, name=language['amount'])
 
+        self.item_chooser = self.add(ChooseItems,
+                                     values=None,
+                                     scroll_exit=True,
+                                     exit_right=True)
+
+        # there seems to be a bug in the library this fixes it
+        self.item_chooser.vale = self.item_chooser.values
+
+        # Setup handler for selecting and unselecting items from list:
+        # If the key '+' or '-' is pressed call the function
+        # item_list.actionHighlighted automatically with the right paramters.
+        self.handlers[ord('+')] = self.item_chooser.h_act_on_highlighted
+        self.handlers[ord('-')] = self.item_chooser.h_act_on_highlighted
+        # TODO: remove unneded handlers!
+
     def beforeEditing(self):
         # fill in the fields with the default values
         self.fill_in_fields()
+
+        pack = self.parentApp.selected_pack
+        included_items = self.parentApp.db.get_items_in_pack(pack)
+        self.item_chooser.values = included_items
+        self.item_chooser.value = len(included_items)*[]
+        for index, item in enumerate(included_items):
+            if item['selected'] > 0:
+                self.item_chooser.value.append(index)
+
+        not_included_items = self.parentApp.db.get_all_items()
+        for item in not_included_items:
+            item['selected'] = 0
+        self.item_chooser.values += not_included_items
 
     def on_ok(self):
         """
