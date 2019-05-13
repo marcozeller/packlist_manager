@@ -407,16 +407,25 @@ def test_update_items_cancel_button():
 
 
 def test_delete_items():
+    # TODO: implement this test
     pass
 
 
 def test_add_new_packs_only_with_items():
+    # TODO: implement this test
     pass
 
 
 def test_list_all_packs():
+    # TODO: implement this test
     pass
 
 
 def test_show_attributes_of_a_pack_only_with_items():
+    # TODO: implement this test
+    pass
+
+
+def test_update_attributes_of_a_pack_only_with_items():
+    # TODO: implement this test
     pass

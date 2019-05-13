@@ -181,3 +181,8 @@ def test_get_items_in_pack():
 def test_get_items_not_in_pack():
     # TODO: implement this test
     pass
+
+
+def test_update_pack():
+    # TODO: implement this test
+    pass
