@@ -174,13 +174,14 @@ class Database:
                 included_items = []
 
             for item in included_items:
-                self.cursor.execute("""INSERT INTO included_items VALUES
-                                       (:pack_id,
-                                        :item_id,
-                                        :selected)""",
-                                    {'pack_id': pack_values['id'],
-                                     'item_id': item['id'],
-                                     'selected': item['selected']})
+                if item['selected'] > 0:
+                    self.cursor.execute("""INSERT INTO included_items VALUES
+                                           (:pack_id,
+                                            :item_id,
+                                            :selected)""",
+                                        {'pack_id': pack_values['id'],
+                                         'item_id': item['id'],
+                                         'selected': item['selected']})
 
     def get_all_packs(self):
         """
@@ -222,7 +223,8 @@ class Database:
         with self.conn:
             self.cursor.execute("""DELETE FROM packs WHERE id = :id""",
                                 pack_values)
-            self.cursor.execute("""DELETE FROM included_items WHERE pack = :id""",
+            self.cursor.execute("""DELETE FROM included_items WHERE
+                                   pack = :id""",
                                 pack_values)
 
     def get_attributes_pack(self, pack):
@@ -246,9 +248,10 @@ class Database:
                        'weight':   0,
                        'volume':   0,
                        'price':    0,
-                       'amount':   None}
-        # amount gets overwritten later: with None as default value
-        # a bug might be detected earlier
+                       'amount':   "infinitely"}
+        # if amount is not changed later this means there is neither an item
+        # nor a pack included in this pack therefore in theory we can build
+        # infinitely many packs of this type
 
         with self.conn:
             # get the raw data for all included items from the database
@@ -293,7 +296,7 @@ class Database:
         The parameter pack is a dictionary with an integer value for the key
         'id' representing it's internal reference for the database.
         The dictionaries have in addtion to the standard values a value to the
-        key 'selected' which is an integer > 0 which represents how many timess
+        key 'selected' which is an integer > 0 which represents how many times
         the item is selected in a pack.
         """
         with self.conn:
@@ -301,7 +304,8 @@ class Database:
             self.cursor.execute("""SELECT * FROM items
                                    INNER JOIN included_items
                                    ON items.id = included_items.item
-                                   AND included_items.pack = :id""",
+                                   WHERE
+                                   included_items.pack = :id""",
                                 pack)
             included_items_raw = self.cursor.fetchall()
 
@@ -333,10 +337,18 @@ class Database:
         """
         with self.conn:
             # get the raw data for all not included items from the database
-            self.cursor.execute("""SELECT * FROM items
+            self.cursor.execute("""SELECT DISTINCT id, name, function, weight,
+                                       volume, price, items.amount
+                                   FROM items
                                    LEFT JOIN included_items
                                    ON items.id = included_items.item
-                                   AND included_items.pack NOT IN (:id)""",
+                                   EXCEPT
+                                   SELECT DISTINCT id, name, function, weight,
+                                       volume, price, items.amount
+                                   FROM items
+                                   LEFT JOIN included_items
+                                   ON items.id = included_items.item
+                                   WHERE included_items.pack = :id""",
                                 pack)
             not_included_items_raw = self.cursor.fetchall()
 
@@ -356,6 +368,48 @@ class Database:
             not_included_items[index] = item
 
         return not_included_items
+
+    def update_pack(self, pack_values, included_items):
+        """
+        This function modifies an existing instance (specified by it's id in
+        pack_attributes) of pack_attributes in the database with the values
+        provided in pack and item_amounts.
+        The parameter pack_attributes must be a dict with an attribute's name
+        (string) as key to 'id', 'name', and 'function' - all other values are
+        ignored.
+        The paramter included_items must be a list of dictionaries of items to
+        to include in the pack.
+        Each dictionary must have a value for key 'id' and 'selected' all other
+        values are ignored.
+        Where the value for 'id' is an integer internally used for referring
+        to the including item.
+        The value to the key 'selected' is an integer > 0 which represents how
+        many timess the item is selected in a pack.
+        """
+        with self.conn:
+            self.cursor.execute("""UPDATE packs SET
+                                       name =  :name,
+                                       function = :function
+                                   WHERE id = :id""",
+                                pack_values)
+
+            self.cursor.execute("""DELETE FROM included_items WHERE
+                                   pack = :id""",
+                                pack_values)
+
+            # catch and handle empty packs
+            if included_items is None:
+                included_items = []
+
+            for item in included_items:
+                if item['selected'] > 0:
+                    self.cursor.execute("""INSERT INTO included_items VALUES
+                                           (:pack_id,
+                                            :item_id,
+                                            :selected)""",
+                                        {'pack_id': pack_values['id'],
+                                         'item_id': item['id'],
+                                         'selected': item['selected']})
 
 
 if __name__ == "__main__":

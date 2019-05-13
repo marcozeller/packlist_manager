@@ -41,6 +41,7 @@ language_english = {'name':         "Name: ",
 
 language = language_english
 
+
 class MainMenu(nps.ActionFormMinimal):
     def go_to_add_item_screen(self):
         self.parentApp.switchForm('ADD_ITEM')
@@ -418,15 +419,12 @@ class EditPack(nps.ActionFormV2):
                                      scroll_exit=True,
                                      exit_right=True)
 
-        # there seems to be a bug in the library this fixes it
-        self.item_chooser.vale = self.item_chooser.values
-
         # Setup handler for selecting and unselecting items from list:
         # If the key '+' or '-' is pressed call the function
         # item_list.actionHighlighted automatically with the right paramters.
         self.handlers[ord('+')] = self.item_chooser.h_act_on_highlighted
         self.handlers[ord('-')] = self.item_chooser.h_act_on_highlighted
-        # TODO: remove unneded handlers!
+        # TODO: remove unneeded handlers!
 
     def beforeEditing(self):
         # fill in the fields with the default values
@@ -434,16 +432,20 @@ class EditPack(nps.ActionFormV2):
 
         pack = self.parentApp.selected_pack
         included_items = self.parentApp.db.get_items_in_pack(pack)
-        self.item_chooser.values = included_items
-        self.item_chooser.value = len(included_items)*[]
+        not_included_items = self.parentApp.db.get_items_not_in_pack(pack)
+        selected_items = []
+
         for index, item in enumerate(included_items):
             if item['selected'] > 0:
-                self.item_chooser.value.append(index)
+                selected_items.append(index)
 
-        not_included_items = self.parentApp.db.get_all_items()
         for item in not_included_items:
             item['selected'] = 0
-        self.item_chooser.values += not_included_items
+
+        self.item_chooser.values = included_items + not_included_items
+        self.item_chooser.value = selected_items
+        # there seems to be a bug in the library this fixes it
+        self.item_chooser.vale = self.item_chooser.value
 
     def on_ok(self):
         """
@@ -457,8 +459,8 @@ class EditPack(nps.ActionFormV2):
         pack_data['function'] = self._function.value
 
         # send the dictionary to the database interface
-        # TODO
-        # self.parentApp.db.update_pack(pack_data)
+        included_items = self.item_chooser.h_act_on_selected('a')
+        self.parentApp.db.update_pack(pack_data, included_items)
 
         # go back to main screen
         self.parentApp.setNextForm('LIST_PACKS')
