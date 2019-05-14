@@ -15,15 +15,15 @@ __license__ = "MIT"
 
 db_name = 'databases/manual_testing.db'
 
-default_values_new_item = {'name':     "Name",
-                           'function': "Function",
+default_values_new_item = {'name':     "Give a Name",
+                           'function': "Describe Function",
                            'weight':   "0",
                            'volume':   "0",
                            'price':    "0",
                            'amount':   "0"}
 
-default_values_new_pack = {'name':     "Name",
-                           'function': "Function"}
+default_values_new_pack = {'name':     "Give a Name",
+                           'function': "Describe Function"}
 
 language_english = {'name':         "Name: ",
                     'function':     "Function: ",
@@ -37,7 +37,9 @@ language_english = {'name':         "Name: ",
                     'edit_item':    "Edit Item",
                     'add_new_pack': "Add a new Pack",
                     'list_packs':   "List Packs",
-                    'edit_pack':    "Edit Pack"}
+                    'edit_pack':    "Edit Pack",
+                    'select_items': "Select Items:",
+                    'select_packs': "Select Packs:"}
 
 language = language_english
 
@@ -235,7 +237,37 @@ class EditItem(nps.ActionFormV2):
         self.parentApp.setNextForm('LIST_ITEMS')
 
 
-class ChooseItems(nps.MultiSelectAction):
+class SelectItems(nps.MultiSelectAction):
+    def display_value(self, vl):
+        return str(vl['selected']) + 'x :' + vl['name']
+
+    def before_editing(self):
+        self.h_select()
+
+    def actionHighlighted(self, act_on_this, keypress):
+        if keypress == ord('+'):
+            # increase the selected amount
+            act_on_this['selected'] += 1
+            # set selected if was zero before
+            if act_on_this['selected'] == 1:
+                self.h_select_toggle(keypress)
+
+        elif keypress == ord('-'):
+            # decrease the selected amount only if positive
+            if act_on_this['selected'] > 0:
+                act_on_this['selected'] -= 1
+                # unselect if reches zero
+                if act_on_this['selected'] == 0:
+                    self.h_select_toggle(keypress)
+        else:
+            # TODO: open popup to select amount using slider
+            pass
+
+    def actionSelected(self, act_on_these, keypress):
+        return act_on_these
+
+
+class SelectPacks(nps.MultiSelectAction):
     def display_value(self, vl):
         return str(vl['selected']) + 'x :' + vl['name']
 
@@ -286,13 +318,29 @@ class AddPack(nps.ActionFormV2):
         self._name = self.add(nps.TitleText, name=language['name'])
         self._function = self.add(nps.TitleText, name=language['function'])
 
+        self.add(nps.TitleFixedText,
+                 name=language['select_items'])
+
         item_list = self.parentApp.db.get_all_items()
         for item in item_list:
             item['selected'] = 0
-        self.item_chooser = self.add(ChooseItems,
+        self.item_chooser = self.add(SelectItems,
                                      values=item_list,
                                      scroll_exit=True,
-                                     exit_right=True)
+                                     exit_right=True,
+                                     max_height=10)
+
+        self.add(nps.TitleFixedText,
+                 name=language['select_packs'])
+
+        pack_list = self.parentApp.db.get_all_packs()
+        for pack in pack_list:
+            pack['selected'] = 0
+        self.pack_chooser = self.add(SelectPacks,
+                                     values=pack_list,
+                                     scroll_exit=True,
+                                     exit_right=True,
+                                     max_height=10)
 
         # there seems to be a bug in the library this fixes it
         self.item_chooser.vale = self.item_chooser.values
@@ -414,7 +462,7 @@ class EditPack(nps.ActionFormV2):
         self._price = self.add(nps.TitleFixedText, name=language['price'])
         self._amount = self.add(nps.TitleFixedText, name=language['amount'])
 
-        self.item_chooser = self.add(ChooseItems,
+        self.item_chooser = self.add(SelectItems,
                                      values=None,
                                      scroll_exit=True,
                                      exit_right=True)
