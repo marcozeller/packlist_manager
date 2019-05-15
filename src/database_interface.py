@@ -366,8 +366,8 @@ class Database:
         items not included in the by the argument specified pack.
         The parameter pack is a dictionary with an integer value for the key
         'id' representing it's internal reference for the database.
-        For convenience the dictionaries have a value to the key 'selected'
-        which is initialised with 0.
+        For convenience the returned dictionaries have a value to the key
+        'selected' which is initialised with 0.
         """
         with self.conn:
             # get the raw data for all not included items from the database
@@ -418,7 +418,7 @@ class Database:
         Where the value for 'id' is an integer internally used for referring
         to the including item.
         The value to the key 'selected' is an integer > 0 which represents how
-        many timess the item is selected in a pack.
+        many times the item is selected in a pack.
         """
         with self.conn:
             self.cursor.execute("""UPDATE packs SET
@@ -456,7 +456,7 @@ class Database:
         the pack is selected in a pack.
         """
         with self.conn:
-            # get the raw data for all included items from the database
+            # get the raw data for all included packs from the database
             self.cursor.execute("""SELECT * FROM packs
                                    INNER JOIN included_packs
                                    ON packs.id = included_packs.included_pack
@@ -465,10 +465,10 @@ class Database:
                                 pack)
             included_packs_raw = self.cursor.fetchall()
 
-        # reserve space in list for all items
+        # reserve space in list for all packs
         included_packs = len(included_packs_raw)*[None]
 
-        # add a dictionary with attributes for every item to the list
+        # add a dictionary with attributes for every pack to the list
         for index, pack_tuple in enumerate(included_packs_raw):
             pack = {'id':       pack_tuple[0],
                     'name':     pack_tuple[1],
@@ -477,6 +477,43 @@ class Database:
             included_packs[index] = pack
 
         return included_packs
+
+    def get_packs_not_in_pack(self, pack):
+        """
+        Returns a list of dictionaries, containing the attributes of all the
+        packs not included in the by the argument specified pack.
+        The parameter pack is a dictionary with an integer value for the key
+        'id' representing it's internal reference for the database.
+        For convenience the returned dictionaries have a value to the key
+        'selected' which is initialised with 0.
+        """
+        with self.conn:
+            # get the raw data for all not included packs from the database
+            self.cursor.execute("""SELECT DISTINCT id, name, function
+                                   FROM packs
+                                   LEFT JOIN included_packs
+                                   ON packs.id = included_packs.included_pack
+                                   EXCEPT
+                                   SELECT DISTINCT id, name, function
+                                   FROM packs
+                                   LEFT JOIN included_packs
+                                   ON packs.id = included_packs.included_pack
+                                   WHERE included_packs.pack = :id""",
+                                pack)
+            not_included_packs_raw = self.cursor.fetchall()
+
+        # reserve space in list for all packs
+        not_included_packs = len(not_included_packs_raw)*[None]
+
+        # add a dictionary with attributes for every pack to the list
+        for index, pack_tuple in enumerate(not_included_packs_raw):
+            pack = {'id':              pack_tuple[0],
+                    'name':            pack_tuple[1],
+                    'function':        pack_tuple[2],
+                    'selected': 0}
+            not_included_packs[index] = pack
+
+        return not_included_packs
 
 
 if __name__ == "__main__":

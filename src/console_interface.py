@@ -524,8 +524,7 @@ class EditPack(nps.ActionFormV2):
 
         # TODO: when implemented use functions from database
         included_packs = self.parentApp.db.get_packs_in_pack(top_pack)
-        not_included_packs = []
-        # not_included_packs = self.parentApp.db.get_packs_not_in_pack(top_pack)
+        not_included_packs = self.parentApp.db.get_packs_not_in_pack(top_pack)
 
         selected_packs_indices = []
 
