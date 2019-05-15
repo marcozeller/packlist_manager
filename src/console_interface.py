@@ -523,8 +523,7 @@ class EditPack(nps.ActionFormV2):
         self.item_chooser.value = selected_items_indices
 
         # TODO: when implemented use functions from database
-        included_packs = []
-        # included_packs = self.parentApp.db.get_packs_in_pack(top_pack)
+        included_packs = self.parentApp.db.get_packs_in_pack(top_pack)
         not_included_packs = []
         # not_included_packs = self.parentApp.db.get_packs_not_in_pack(top_pack)
 

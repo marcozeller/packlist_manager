@@ -445,6 +445,39 @@ class Database:
                                          'item_id': item['id'],
                                          'selected': item['selected']})
 
+    def get_packs_in_pack(self, pack):
+        """
+        Returns a list of dictionaries, containing the attributes of all the
+        packs included in the by the argument specified pack.
+        The parameter pack is a dictionary with an integer value for the key
+        'id' representing it's internal reference for the database.
+        The dictionaries have in addtion to the standard values a value to the
+        key 'selected' which is an integer > 0 which represents how many times
+        the pack is selected in a pack.
+        """
+        with self.conn:
+            # get the raw data for all included items from the database
+            self.cursor.execute("""SELECT * FROM packs
+                                   INNER JOIN included_packs
+                                   ON packs.id = included_packs.included_pack
+                                   WHERE
+                                   included_packs.pack = :id""",
+                                pack)
+            included_packs_raw = self.cursor.fetchall()
+
+        # reserve space in list for all items
+        included_packs = len(included_packs_raw)*[None]
+
+        # add a dictionary with attributes for every item to the list
+        for index, pack_tuple in enumerate(included_packs_raw):
+            pack = {'id':       pack_tuple[0],
+                    'name':     pack_tuple[1],
+                    'function': pack_tuple[2],
+                    'selected': pack_tuple[5]}
+            included_packs[index] = pack
+
+        return included_packs
+
 
 if __name__ == "__main__":
     """
