@@ -48,9 +48,25 @@ class Database:
                                    item integer,
                                    amount integer,
                                    PRIMARY KEY (pack, item),
-                                   FOREIGN KEY (pack) REFERENCES packs(id),
-                                   FOREIGN KEY (item) REFERENCES items(id))
+                                   FOREIGN KEY (pack) REFERENCES packs(id)
+                                   ON DELETE CASCADE,
+                                   FOREIGN KEY (item) REFERENCES items(id)
+                                   ON DELETE CASCADE)
                                    """)
+
+            self.cursor.execute("""CREATE TABLE IF NOT EXISTS included_packs(
+                                   pack integer,
+                                   included_pack integer,
+                                   amount integer,
+                                   PRIMARY KEY (pack, included_pack),
+                                   FOREIGN KEY (pack) REFERENCES packs(id)
+                                   ON DELETE CASCADE,
+                                   FOREIGN KEY (included_pack) REFERENCES packs(id)
+                                   ON DELETE CASCADE)
+                                   """)
+
+            # activate the constraints on foreign_keys in database
+            self.cursor.execute("""PRAGMA foreign_keys = ON""")
 
     def store_new_item(self, item_values):
         """
@@ -143,7 +159,7 @@ class Database:
             self.cursor.execute("""DELETE FROM items WHERE id = :id""",
                                 item_values)
 
-    def store_new_pack(self, pack_values, included_items):
+    def store_new_pack(self, pack_values, included_items, included_packs):
         """
         Stores a new pack in the database.
         pack_values is a dict with the attribute's name (String) as key
@@ -155,6 +171,10 @@ class Database:
         This function creates a new instance (= new id) of this pack
         in the database.
         The parameter included_items is a list of dictionaries each dictionary
+        must contain a value to the key 'id' which refers to an item in the
+        database and a value to the key 'selected' which is an integer > 0
+        which represents how many times the item is selected in a pack.
+        The parameter included_packs is a list of dictionaries each dictionary
         must contain a value to the key 'id' which refers to an item in the
         database and a value to the key 'selected' which is an integer > 0
         which represents how many times the item is selected in a pack.
@@ -182,6 +202,20 @@ class Database:
                                         {'pack_id': pack_values['id'],
                                          'item_id': item['id'],
                                          'selected': item['selected']})
+
+            # catch and handle empty packs
+            if included_packs is None:
+                included_packs = []
+
+            for pack in included_packs:
+                if pack['selected'] > 0:
+                    self.cursor.execute("""INSERT INTO included_packs VALUES
+                                           (:pack_id,
+                                            :included_pack_id,
+                                            :selected)""",
+                                        {'pack_id': pack_values['id'],
+                                         'included_pack_id': pack['id'],
+                                         'selected': pack['selected']})
 
     def get_all_packs(self):
         """
