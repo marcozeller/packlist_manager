@@ -479,14 +479,26 @@ class EditPack(nps.ActionFormV2):
         self._price = self.add(nps.TitleFixedText, name=language['price'])
         self._amount = self.add(nps.TitleFixedText, name=language['amount'])
 
+        self.add(nps.TitleFixedText,
+                 name=language['select_items'])
         self.item_chooser = self.add(SelectItems,
                                      values=None,
                                      scroll_exit=True,
-                                     exit_right=True)
+                                     exit_right=True,
+                                     max_height=10)
+
+        self.add(nps.TitleFixedText,
+                 name=language['select_packs'])
+        self.pack_chooser = self.add(SelectPacks,
+                                     values=None,
+                                     scroll_exit=True,
+                                     exit_right=True,
+                                     max_height=10)
 
         # Setup handler for selecting and unselecting items from list:
         # If the key '+' or '-' is pressed call the function
         # item_list.actionHighlighted automatically with the right paramters.
+        # TODO
         self.handlers[ord('+')] = self.item_chooser.h_act_on_highlighted
         self.handlers[ord('-')] = self.item_chooser.h_act_on_highlighted
         # TODO: remove unneeded handlers!
@@ -495,22 +507,41 @@ class EditPack(nps.ActionFormV2):
         # fill in the fields with the default values
         self.fill_in_fields()
 
-        pack = self.parentApp.selected_pack
-        included_items = self.parentApp.db.get_items_in_pack(pack)
-        not_included_items = self.parentApp.db.get_items_not_in_pack(pack)
-        selected_items = []
+        top_pack = self.parentApp.selected_pack
+
+        included_items = self.parentApp.db.get_items_in_pack(top_pack)
+        not_included_items = self.parentApp.db.get_items_not_in_pack(top_pack)
+        selected_items_indices = []
 
         for index, item in enumerate(included_items):
+            # double check if really selected
+            # TODO: throw an error in future
             if item['selected'] > 0:
-                selected_items.append(index)
-
-        for item in not_included_items:
-            item['selected'] = 0
+                selected_items_indices.append(index)
 
         self.item_chooser.values = included_items + not_included_items
-        self.item_chooser.value = selected_items
+        self.item_chooser.value = selected_items_indices
+
+        # TODO: when implemented use functions from database
+        included_packs = []
+        # included_packs = self.parentApp.db.get_packs_in_pack(top_pack)
+        not_included_packs = []
+        # not_included_packs = self.parentApp.db.get_packs_not_in_pack(top_pack)
+
+        selected_packs_indices = []
+
+        for index, pack in enumerate(included_packs):
+            # double check if really selected
+            # TODO: throw an error in future
+            if pack['selected'] > 0:
+                selected_packs_indices.append(index)
+
+        self.pack_chooser.values = included_packs + not_included_packs
+        self.pack_chooser.value = selected_packs_indices
+
         # there seems to be a bug in the library this fixes it
         self.item_chooser.vale = self.item_chooser.value
+        self.pack_chooser.vale = self.pack_chooser.value
 
     def on_ok(self):
         """
