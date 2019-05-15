@@ -10,7 +10,7 @@ import npyscreen as nps
 import database_interface as dbi
 
 __author__ = "Marco Zeller"
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __license__ = "MIT"
 
 db_name = 'databases/manual_testing.db'
