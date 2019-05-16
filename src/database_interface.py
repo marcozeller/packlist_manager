@@ -276,9 +276,16 @@ class Database:
         built with the available amounts of items.
         """
         # create a dictionary with the known return values
+        with self.conn:
+            # get the raw data for all included items from the database
+            self.cursor.execute("""SELECT * FROM packs
+                                   WHERE id = :id""",
+                                pack)
+            pack_raw = self.cursor.fetchone()
+
         pack_values = {'id':       pack['id'],
-                       'name':     None,
-                       'function': None,
+                       'name':     pack_raw[1],
+                       'function': pack_raw[2],
                        'weight':   0,
                        'volume':   0,
                        'price':    0,
@@ -299,8 +306,6 @@ class Database:
         # go through all items and update pack_values accordingly
         for index, included_item in enumerate(included_items_raw):
             # read out the needed values from the raw data tuple
-            name = included_item[1]
-            function = included_item[2]
             weight = included_item[3]
             volume = included_item[4]
             price = included_item[5]
@@ -308,14 +313,55 @@ class Database:
             amount_selected = included_item[9]
 
             # update values according to item's attribute and amount selected
-            pack_values['name'] = name
-            pack_values['function'] = function
             pack_values['weight'] += amount_selected * weight
             pack_values['price'] += amount_selected * price
             pack_values['volume'] += amount_selected * volume
             amount = amount_available // amount_selected
 
             if index == 0:
+                pack_values['amount'] = amount
+            else:
+                pack_values['amount'] = min(amount,
+                                            pack_values['amount'])
+
+        with self.conn:
+            # get the raw data for all included packs from the database
+            self.cursor.execute("""SELECT * FROM packs
+                                   INNER JOIN included_packs
+                                   ON packs.id = included_packs.included_pack
+                                   AND included_packs.pack = :id""",
+                                pack)
+            included_packs_raw = self.cursor.fetchall()
+
+        # go through all packs and update pack_values accordingly
+        for index, included_pack in enumerate(included_packs_raw):
+            # read out the needed values from the raw data tuple
+            included_pack_dict = {'id': included_pack[0]}
+            # TODO: can the recursion be avoided for better efficiency?
+            sub_pack_values = self.get_attributes_pack(included_pack_dict)
+            weight = sub_pack_values['weight']
+            volume = sub_pack_values['volume']
+            price = sub_pack_values['price']
+            amount_available = sub_pack_values['amount']
+            amount_selected = included_pack[5]
+
+            # update values according to item's attribute and amount selected
+            pack_values['weight'] += amount_selected * weight
+            pack_values['price'] += amount_selected * price
+            pack_values['volume'] += amount_selected * volume
+
+            if amount_available == 'infinitely':
+                continue
+
+            # TODO: Calculation of amount does not properly work yet.
+            #       E. g. the case if two packs include the same unique item
+            #       and a the top-level pack includes both of these packs.
+            #       The amount will be one (each included pack can be built
+            #       once) but should be zero (since they cannot be built at
+            #       the same time with the available items).
+            amount = amount_available // amount_selected
+
+            if pack_values['amount'] == 'infinitely':
                 pack_values['amount'] = amount
             else:
                 pack_values['amount'] = min(amount,
@@ -509,6 +555,7 @@ class Database:
         else:
             included_packs = self.get_packs_in_pack(pack_to_include)
             for sub_pack in included_packs:
+                # TODO: can the recursion be avoided for better efficiency?
                 if self.leads_to_circular_reference(pack, sub_pack):
                     return True
             return False
