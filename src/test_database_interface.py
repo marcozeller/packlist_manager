@@ -193,6 +193,11 @@ def test_get_packs_in_pack():
     pass
 
 
+def test_leads_to_circular_reference():
+    # TODO: implement this test
+    pass
+
+
 def test_get_packs_not_in_pack():
     # TODO: implement this test
     pass

@@ -478,6 +478,21 @@ class Database:
 
         return included_packs
 
+    def leads_to_circular_reference(self, pack, pack_to_include):
+        """
+        Returns True if pack_to_include or any of it's sub-packs contains pack.
+        If and only if this function returns False it is save to
+        include pack_to_include into pack, without breaking the program later.
+        """
+        if pack['id'] == pack_to_include['id']:
+            return True
+        else:
+            included_packs = self.get_packs_in_pack(pack_to_include)
+            for sub_pack in included_packs:
+                if self.leads_to_circular_reference(pack, sub_pack):
+                    return True
+            return False
+
     def get_packs_not_in_pack(self, pack):
         """
         Returns a list of dictionaries, containing the attributes of all the
@@ -501,17 +516,16 @@ class Database:
                                    WHERE included_packs.pack = :id""",
                                 pack)
             not_included_packs_raw = self.cursor.fetchall()
-
-        # reserve space in list for all packs
-        not_included_packs = len(not_included_packs_raw)*[None]
+            not_included_packs = []
 
         # add a dictionary with attributes for every pack to the list
         for index, pack_tuple in enumerate(not_included_packs_raw):
-            pack = {'id':              pack_tuple[0],
-                    'name':            pack_tuple[1],
-                    'function':        pack_tuple[2],
-                    'selected': 0}
-            not_included_packs[index] = pack
+            pack_to_select = {'id':              pack_tuple[0],
+                              'name':            pack_tuple[1],
+                              'function':        pack_tuple[2],
+                              'selected': 0}
+            if not self.leads_to_circular_reference(pack, pack_to_select):
+                not_included_packs.append(pack_to_select)
 
         return not_included_packs
 
