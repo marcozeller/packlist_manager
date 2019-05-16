@@ -403,7 +403,7 @@ class Database:
 
         return not_included_items
 
-    def update_pack(self, pack_values, included_items):
+    def update_pack(self, pack_values, included_items, included_packs):
         """
         This function modifies an existing instance (specified by it's id in
         pack_attributes) of pack_attributes in the database with the values
@@ -413,6 +413,8 @@ class Database:
         ignored.
         The paramter included_items must be a list of dictionaries of items to
         to include in the pack.
+        The paramter included_packs must be a list of dictionaries of packs to
+        include in the pack.
         Each dictionary must have a value for key 'id' and 'selected' all other
         values are ignored.
         Where the value for 'id' is an integer internally used for referring
@@ -431,6 +433,10 @@ class Database:
                                    pack = :id""",
                                 pack_values)
 
+            self.cursor.execute("""DELETE FROM included_packs WHERE
+                                   pack = :id""",
+                                pack_values)
+
             # catch and handle empty packs
             if included_items is None:
                 included_items = []
@@ -444,6 +450,20 @@ class Database:
                                         {'pack_id': pack_values['id'],
                                          'item_id': item['id'],
                                          'selected': item['selected']})
+
+            # catch and handle empty packs
+            if included_packs is None:
+                included_packs = []
+
+            for pack in included_packs:
+                if pack['selected'] > 0:
+                    self.cursor.execute("""INSERT INTO included_packs VALUES
+                                           (:pack_id,
+                                            :included_pack,
+                                            :selected)""",
+                                        {'pack_id': pack_values['id'],
+                                         'included_pack': pack['id'],
+                                         'selected': pack['selected']})
 
     def get_packs_in_pack(self, pack):
         """

@@ -495,13 +495,25 @@ class EditPack(nps.ActionFormV2):
                                      exit_right=True,
                                      max_height=10)
 
+        # there seems to be a bug in the library this fixes it
+        self.item_chooser.vale = self.item_chooser.values
+        self.pack_chooser.vale = self.pack_chooser.values
+
         # Setup handler for selecting and unselecting items from list:
         # If the key '+' or '-' is pressed call the function
-        # item_list.actionHighlighted automatically with the right paramters.
-        # TODO
-        self.handlers[ord('+')] = self.item_chooser.h_act_on_highlighted
-        self.handlers[ord('-')] = self.item_chooser.h_act_on_highlighted
-        # TODO: remove unneeded handlers!
+        # item_chooser.actionHighlighted automatically with the right paramters.
+        item_chooser_handlers = {ord('+'): self.item_chooser.h_act_on_highlighted,
+                                 ord('-'): self.item_chooser.h_act_on_highlighted}
+
+        self.item_chooser.add_handlers(item_chooser_handlers)
+
+        # Setup handler for selecting and unselecting packs from list:
+        # If the key '+' or '-' is pressed call the function
+        # pack_chooser.actionHighlighted automatically with the right paramters.
+        pack_chooser_handlers = {ord('+'): self.pack_chooser.h_act_on_highlighted,
+                                 ord('-'): self.pack_chooser.h_act_on_highlighted}
+
+        self.pack_chooser.add_handlers(pack_chooser_handlers)
 
     def beforeEditing(self):
         # fill in the fields with the default values
@@ -554,7 +566,8 @@ class EditPack(nps.ActionFormV2):
 
         # send the dictionary to the database interface
         included_items = self.item_chooser.h_act_on_selected('a')
-        self.parentApp.db.update_pack(pack_data, included_items)
+        included_packs = self.pack_chooser.h_act_on_selected('a')
+        self.parentApp.db.update_pack(pack_data, included_items, included_packs)
 
         # go back to main screen
         self.parentApp.setNextForm('LIST_PACKS')
