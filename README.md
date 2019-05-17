@@ -12,15 +12,17 @@ Console interface tool written in python to create and manage packing lists with
   * Show a Pack in Database without included Packs
   * Modify a Pack in Database without included Packs
   * Store new Packs in Database with included Packs
+  * Show a Pack in Database with included Packs (except amount)
+  * Modify a Pack in Database with included Packs
 
 # Planned Features
 ## Basic Features
 * First Functional Release
-  * Show a Pack in Database with included Packs
-  * Modify a Pack in Database with included Packs
+  * Store weight, volume, price, as float and give some units to convert to and from
   * Make it possible for the Database to be imported and converted for future releases
-  * Fast (rewritten) tests for all the functionalities
 
+* Fast (rewritten) tests for all the functionalities
+* Properly calculate the amounts for packs
 * Add Security Constraints (e.g. no including loops) on DB-Level and User-Level
 * Add NeedToBuy function
 * Export a Printable Version of a Packlist

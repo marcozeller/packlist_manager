@@ -275,7 +275,6 @@ class Database:
         The value for 'amount' stands for how many packs of these type can be
         built with the available amounts of items.
         """
-        # create a dictionary with the known return values
         with self.conn:
             # get the raw data for all included items from the database
             self.cursor.execute("""SELECT * FROM packs
@@ -283,6 +282,7 @@ class Database:
                                 pack)
             pack_raw = self.cursor.fetchone()
 
+        # create a dictionary with the known return values
         pack_values = {'id':       pack['id'],
                        'name':     pack_raw[1],
                        'function': pack_raw[2],
@@ -353,6 +353,10 @@ class Database:
             if amount_available == 'infinitely':
                 continue
 
+            # TODO: temp fix, remove as soon as amount is calculated correctly
+            if amount_available == 'not implemented':
+                continue
+
             # TODO: Calculation of amount does not properly work yet.
             #       E. g. the case if two packs include the same unique item
             #       and a the top-level pack includes both of these packs.
@@ -366,6 +370,9 @@ class Database:
             else:
                 pack_values['amount'] = min(amount,
                                             pack_values['amount'])
+
+        # TODO: temporary fix, remove as soon as amount is calculated correctly
+        pack_values['amount'] = 'not implemented'
 
         return pack_values
 
