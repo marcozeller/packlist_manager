@@ -5,6 +5,7 @@ This module is used by the userinterfaces to interact with the database.
 It offers abstractions for all the functionality provided by the database.
 """
 import sqlite3
+import decimal
 
 
 class Database:
@@ -33,9 +34,9 @@ class Database:
                                    id integer PRIMARY KEY,
                                    name text,
                                    function text,
-                                   weight integer,
-                                   volume integer,
-                                   price integer,
+                                   weight text,
+                                   volume text,
+                                   price text,
                                    amount integer) """)
 
             self.cursor.execute("""CREATE TABLE IF NOT EXISTS packs(
@@ -80,8 +81,16 @@ class Database:
         This function creates a new instance (= new id) of this item
         in the database.
         """
+        item_values_for_db = {
+                'id':       None,
+                'name':     item_values['name'],
+                'function': item_values['function'],
+                'weight':   str(item_values['weight']),
+                'volume':   str(item_values['volume']),
+                'price':    str(item_values['price']),
+                'amount':   item_values['amount']}
+
         with self.conn:
-            item_values['id'] = None
             self.cursor.execute("""INSERT INTO items VALUES
                                    (:id,
                                     :name,
@@ -90,7 +99,7 @@ class Database:
                                     :volume,
                                     :price,
                                     :amount)""",
-                                item_values)
+                                item_values_for_db)
 
     def get_all_items(self):
         """
@@ -113,9 +122,9 @@ class Database:
             item = {'id':       item_tuple[0],
                     'name':     item_tuple[1],
                     'function': item_tuple[2],
-                    'weight':   item_tuple[3],
-                    'volume':   item_tuple[4],
-                    'price':    item_tuple[5],
+                    'weight':   decimal.Decimal(item_tuple[3]),
+                    'volume':   decimal.Decimal(item_tuple[4]),
+                    'price':    decimal.Decimal(item_tuple[5]),
                     'amount':   item_tuple[6]}
             items[index] = item
 
@@ -132,6 +141,14 @@ class Database:
         The item_values dict must provide a value for the key 'id'
         if it does not the update will be ignoered.
         """
+        item_values_for_db = {
+                'id':       item_values['id'],
+                'name':     item_values['name'],
+                'function': item_values['function'],
+                'weight':   str(item_values['weight']),
+                'volume':   str(item_values['volume']),
+                'price':    str(item_values['price']),
+                'amount':   item_values['amount']}
         with self.conn:
             self.cursor.execute("""UPDATE items SET
                                        name =  :name,
@@ -141,7 +158,7 @@ class Database:
                                        price = :price,
                                        amount = :amount
                                    WHERE id = :id""",
-                                item_values)
+                                item_values_for_db)
 
     def delete_item(self, item_values):
         """
@@ -286,9 +303,9 @@ class Database:
         pack_values = {'id':       pack['id'],
                        'name':     pack_raw[1],
                        'function': pack_raw[2],
-                       'weight':   0,
-                       'volume':   0,
-                       'price':    0,
+                       'weight':   decimal.Decimal(0.0),
+                       'volume':   decimal.Decimal(0.0),
+                       'price':    decimal.Decimal(0.0),
                        'amount':   "infinitely"}
         # if amount is not changed later this means there is neither an item
         # nor a pack included in this pack therefore in theory we can build
@@ -306,9 +323,9 @@ class Database:
         # go through all items and update pack_values accordingly
         for index, included_item in enumerate(included_items_raw):
             # read out the needed values from the raw data tuple
-            weight = included_item[3]
-            volume = included_item[4]
-            price = included_item[5]
+            weight = decimal.Decimal(included_item[3])
+            volume = decimal.Decimal(included_item[4])
+            price = decimal.Decimal(included_item[5])
             amount_available = included_item[6]
             amount_selected = included_item[9]
 
@@ -404,9 +421,9 @@ class Database:
             item = {'id':       item_tuple[0],
                     'name':     item_tuple[1],
                     'function': item_tuple[2],
-                    'weight':   item_tuple[3],
-                    'volume':   item_tuple[4],
-                    'price':    item_tuple[5],
+                    'weight':   decimal.Decimal(item_tuple[3]),
+                    'volume':   decimal.Decimal(item_tuple[4]),
+                    'price':    decimal.Decimal(item_tuple[5]),
                     'amount':   item_tuple[6],
                     'selected': item_tuple[9]}
             included_items[index] = item
@@ -447,9 +464,9 @@ class Database:
             item = {'id':              item_tuple[0],
                     'name':            item_tuple[1],
                     'function':        item_tuple[2],
-                    'weight':          item_tuple[3],
-                    'volume':          item_tuple[4],
-                    'price':           item_tuple[5],
+                    'weight':          decimal.Decimal(item_tuple[3]),
+                    'volume':          decimal.Decimal(item_tuple[4]),
+                    'price':           decimal.Decimal(item_tuple[5]),
                     'amount':          item_tuple[6],
                     'selected': 0}
             not_included_items[index] = item

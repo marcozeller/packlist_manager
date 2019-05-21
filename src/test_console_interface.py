@@ -4,6 +4,7 @@ import curses
 import npyscreen as nps
 import console_interface as coi
 import test_database_interface as tdi
+import decimal
 
 """
 nps.TEST_SETTINGS = {
@@ -19,9 +20,9 @@ nps.TEST_SETTINGS['CONTINUE_AFTER_TEST_INPUT'] = False
 
 test_item = {'name': "TestName",
              'function': "TestFunction",
-             'weight': 1,
-             'volume': 2,
-             'price': 3,
+             'weight': decimal.Decimal(1.0),
+             'volume': decimal.Decimal(2.0),
+             'price': decimal.Decimal(3.0),
              'amount': 4}
 
 
@@ -321,9 +322,9 @@ def test_update_items():
 
     new_item = {'name': "NewName",
                 'function': "NewTestFunction",
-                'weight': 2,
-                'volume': 3,
-                'price': 4,
+                'weight': decimal.Decimal(2.0),
+                'volume': decimal.Decimal(3.0),
+                'price': decimal.Decimal(4.0),
                 'amount': 5}
 
     for i in range(10):

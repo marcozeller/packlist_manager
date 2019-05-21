@@ -8,9 +8,10 @@ and the utility module for more complex operations.
 """
 import npyscreen as nps
 import database_interface as dbi
+import decimal
 
 __author__ = "Marco Zeller"
-__version__ = "0.0.9"
+__version__ = "0.0.10"
 __license__ = "MIT"
 
 db_name = 'databases/manual_testing.db'
@@ -25,11 +26,15 @@ default_values_new_item = {'name':     "Give a Name",
 default_values_new_pack = {'name':     "Give a Name",
                            'function': "Describe Function"}
 
+unit_for = {'weight': "kg",
+            'volume': "L",
+            'price':  "CHF"}
+
 language_english = {'name':         "Name: ",
                     'function':     "Function: ",
-                    'weight':       "Weight: ",
-                    'volume':       "Volume: ",
-                    'price':        "Price: ",
+                    'weight':       "Weight [" + unit_for['weight'] + "]: ",
+                    'volume':       "Volume [" + unit_for['volume'] + "]: ",
+                    'price':        "Price [" + unit_for['price'] + "]: ",
                     'amount':       "Amount: ",
                     'main_menu':    "Main Menu",
                     'add_new_item': "Add a new Item",
@@ -114,9 +119,9 @@ class AddItem(nps.ActionFormV2):
         item_data = {}
         item_data['name'] = self._name.value
         item_data['function'] = self._function.value
-        item_data['weight'] = int(self._weight.value)
-        item_data['volume'] = int(self._volume.value)
-        item_data['price'] = int(self._price.value)
+        item_data['weight'] = decimal.Decimal(self._weight.value)
+        item_data['volume'] = decimal.Decimal(self._volume.value)
+        item_data['price'] = decimal.Decimal(self._price.value)
         item_data['amount'] = int(self._amount.value)
 
         # send the dictionary to the database interface
@@ -217,9 +222,9 @@ class EditItem(nps.ActionFormV2):
         item_data['id'] = self.parentApp.selected_item['id']
         item_data['name'] = self._name.value
         item_data['function'] = self._function.value
-        item_data['weight'] = int(self._weight.value)
-        item_data['volume'] = int(self._volume.value)
-        item_data['price'] = int(self._price.value)
+        item_data['weight'] = decimal.Decimal(self._weight.value)
+        item_data['volume'] = decimal.Decimal(self._volume.value)
+        item_data['price'] = decimal.Decimal(self._price.value)
         item_data['amount'] = int(self._amount.value)
 
         # send the dictionary to the database interface

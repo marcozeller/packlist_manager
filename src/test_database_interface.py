@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import database_interface as dbi
+import decimal
 
 # Produce some test data:
 n_items = 100
@@ -9,9 +10,9 @@ item_attributes_list = n_items*[None]
 for i in range(n_items):
     item_attributes = {'name': 'Name' + str(i+1),
                        'function': 'Function' + str(i+1),
-                       'weight': 0,
-                       'volume': 0,
-                       'price': 0,
+                       'weight': decimal.Decimal(0.0),
+                       'volume': decimal.Decimal(0.0),
+                       'price': decimal.Decimal(0.0),
                        'amount': 0}
 
     item_attributes_list[i] = (item_attributes)
@@ -32,9 +33,9 @@ def compare_item_data(item_tuple, attribute_dict, item_id=0):
     return item_tuple == (item_id,
                           attribute_dict['name'],
                           attribute_dict['function'],
-                          attribute_dict['weight'],
-                          attribute_dict['volume'],
-                          attribute_dict['price'],
+                          str(attribute_dict['weight']),
+                          str(attribute_dict['volume']),
+                          str(attribute_dict['price']),
                           attribute_dict['amount'])
 
 
