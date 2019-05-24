@@ -18,68 +18,68 @@ __license__ = "MIT"
 db_name = 'databases/manual_testing.db'
 
 custom_shortcuts_general = {
-        'z': 'do_nothing',
-        'j': 'cursor_down',
-        'k': 'cursor_up',
-        'l': 'enter_selected',
-        'f': 'find',
-        '/': 'find',
-        'w': 'press_ok',
-        'q': 'press_cancel',
-        '?': 'show_help',
+        ord('z'): 'do_nothing',
+        ord('j'): 'cursor_down',
+        ord('k'): 'cursor_up',
+        ord('l'): 'enter_selected',
+        ord('f'): 'find',
+        ord('/'): 'find',
+        ord('w'): 'press_ok',
+        ord('q'): 'press_cancel',
+        ord('?'): 'show_help',
         }
 
-custom_shortcuts_main_menu = custom_shortcuts_general
+custom_shortcuts_main_menu = custom_shortcuts_general.copy()
 custom_shortcuts_main_menu.update({
-        'q': 'press_ok',
+        ord('q'): 'press_ok',
         })
 
-custom_shortcuts_add_item = custom_shortcuts_general
+custom_shortcuts_add_item = custom_shortcuts_general.copy()
 custom_shortcuts_add_item.update({
-        'i': 'edit_attribute',
+        ord('i'): 'edit_attribute',
         curses.ascii.ESC: 'command_mode',
         })
 
-custom_shortcuts_list_items = custom_shortcuts_general
+custom_shortcuts_list_items = custom_shortcuts_general.copy()
 custom_shortcuts_list_items.update({
-        'l': 'change_item',
-        'x': 'delete_item',
-        'd': 'delete_item',
-        '/': 'find',
+        ord('l'): 'change_item',
+        ord('x'): 'delete_item',
+        ord('d'): 'delete_item',
+        ord('/'): 'find',
         })
 
-custom_shortcuts_edit_item = custom_shortcuts_general
+custom_shortcuts_edit_item = custom_shortcuts_general.copy()
 custom_shortcuts_edit_item.update({
         })
 
-custom_shortcuts_add_pack = custom_shortcuts_general
+custom_shortcuts_add_pack = custom_shortcuts_general.copy()
 custom_shortcuts_add_pack.update({
         })
 
-custom_shortcuts_select_items = custom_shortcuts_general
+custom_shortcuts_select_items = custom_shortcuts_general.copy()
 custom_shortcuts_select_items.update({
-        'x': 'do_nothing',
-        'l': 'select_pack',
-        '+': 'select_pack',
-        'h': 'deselect_pack',
-        '-': 'deselect_pack',
+        ord('x'): 'do_nothing',
+        ord('l'): 'select_pack',
+        ord('+'): 'select_pack',
+        ord('h'): 'deselect_pack',
+        ord('-'): 'deselect_pack',
         })
 
-custom_shortcuts_select_packs = custom_shortcuts_general
+custom_shortcuts_select_packs = custom_shortcuts_general.copy()
 custom_shortcuts_select_packs.update({
-        'x': 'do_nothing',
-        'l': 'select_pack',
-        '+': 'select_pack',
-        'h': 'deselect_pack',
-        '-': 'deselect_pack',
+        ord('x'): 'do_nothing',
+        ord('l'): 'select_pack',
+        ord('+'): 'select_pack',
+        ord('h'): 'deselect_pack',
+        ord('-'): 'deselect_pack',
         })
 
-custom_shortcuts_list_packs = custom_shortcuts_general
+custom_shortcuts_list_packs = custom_shortcuts_general.copy()
 custom_shortcuts_list_packs.update({
         })
 
 
-custom_shortcuts_edit_pack = custom_shortcuts_general
+custom_shortcuts_edit_pack = custom_shortcuts_general.copy()
 custom_shortcuts_edit_pack.update({
         })
 
@@ -116,6 +116,27 @@ language_english = {'name':         "Name: ",
 language = language_english
 
 
+class MenuEntry(nps.ButtonPress):
+    def set_up_handlers(self):
+        super(nps.ButtonPress, self).set_up_handlers()
+        custom_handlers = {}
+        for key in custom_shortcuts_main_menu.keys():
+            if custom_shortcuts_main_menu[key] == 'do_nothing':
+                try:
+                    self.handlers.pop(key)
+                except KeyError:
+                    pass
+            elif custom_shortcuts_main_menu[key] == 'cursor_down':
+                custom_handlers[key] = self.h_exit_down
+            elif custom_shortcuts_main_menu[key] == 'cursor_up':
+                custom_handlers[key] = self.h_exit_up
+            elif custom_shortcuts_main_menu[key] == 'enter_selected':
+                custom_handlers[key] = self.h_toggle
+            else:
+                pass
+        self.add_handlers(custom_handlers)
+
+
 class MainMenu(nps.ActionFormMinimal):
     def go_to_add_item_screen(self):
         self.parentApp.switchForm('ADD_ITEM')
@@ -129,17 +150,32 @@ class MainMenu(nps.ActionFormMinimal):
     def go_to_list_packs_screen(self):
         self.parentApp.switchForm('LIST_PACKS')
 
+    def exit_form(self, ch):
+        self.parentApp.switchForm(None)
+
+    def set_up_handlers(self):
+        super(nps.ActionFormMinimal, self).set_up_handlers()
+        custom_handlers = {}
+        for key in custom_shortcuts_main_menu.keys():
+            if custom_shortcuts_main_menu[key] == 'do_nothing':
+                custom_handlers[key] = self.do_nothing
+            elif custom_shortcuts_main_menu[key] == 'show_help':
+                custom_handlers[key] = self.h_display_help
+            elif custom_shortcuts_main_menu[key] == 'press_ok':
+                custom_handlers[key] = self.exit_form
+        self.add_handlers(custom_handlers)
+
     def create(self):
-        self.add(nps.ButtonPress,
+        self.add(MenuEntry,
                  name=language['add_new_item'],
                  when_pressed_function=self.go_to_add_item_screen)
-        self.add(nps.ButtonPress,
+        self.add(MenuEntry,
                  name=language['list_items'],
                  when_pressed_function=self.go_to_list_items_screen)
-        self.add(nps.ButtonPress,
+        self.add(MenuEntry,
                  name=language['add_new_pack'],
                  when_pressed_function=self.go_to_add_pack_screen)
-        self.add(nps.ButtonPress,
+        self.add(MenuEntry,
                  name=language['list_packs'],
                  when_pressed_function=self.go_to_list_packs_screen)
 
