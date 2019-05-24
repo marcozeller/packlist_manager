@@ -9,12 +9,79 @@ and the utility module for more complex operations.
 import npyscreen as nps
 import database_interface as dbi
 import decimal
+import curses
 
 __author__ = "Marco Zeller"
 __version__ = "0.0.10"
 __license__ = "MIT"
 
 db_name = 'databases/manual_testing.db'
+
+custom_shortcuts_general = {
+        'z': 'do_nothing',
+        'j': 'cursor_down',
+        'k': 'cursor_up',
+        'l': 'enter_selected',
+        'f': 'find',
+        '/': 'find',
+        'w': 'press_ok',
+        'q': 'press_cancel',
+        '?': 'show_help',
+        }
+
+custom_shortcuts_main_menu = custom_shortcuts_general
+custom_shortcuts_main_menu.update({
+        'q': 'press_ok',
+        })
+
+custom_shortcuts_add_item = custom_shortcuts_general
+custom_shortcuts_add_item.update({
+        'i': 'edit_attribute',
+        curses.ascii.ESC: 'command_mode',
+        })
+
+custom_shortcuts_list_items = custom_shortcuts_general
+custom_shortcuts_list_items.update({
+        'l': 'change_item',
+        'x': 'delete_item',
+        'd': 'delete_item',
+        '/': 'find',
+        })
+
+custom_shortcuts_edit_item = custom_shortcuts_general
+custom_shortcuts_edit_item.update({
+        })
+
+custom_shortcuts_add_pack = custom_shortcuts_general
+custom_shortcuts_add_pack.update({
+        })
+
+custom_shortcuts_select_items = custom_shortcuts_general
+custom_shortcuts_select_items.update({
+        'x': 'do_nothing',
+        'l': 'select_pack',
+        '+': 'select_pack',
+        'h': 'deselect_pack',
+        '-': 'deselect_pack',
+        })
+
+custom_shortcuts_select_packs = custom_shortcuts_general
+custom_shortcuts_select_packs.update({
+        'x': 'do_nothing',
+        'l': 'select_pack',
+        '+': 'select_pack',
+        'h': 'deselect_pack',
+        '-': 'deselect_pack',
+        })
+
+custom_shortcuts_list_packs = custom_shortcuts_general
+custom_shortcuts_list_packs.update({
+        })
+
+
+custom_shortcuts_edit_pack = custom_shortcuts_general
+custom_shortcuts_edit_pack.update({
+        })
 
 default_values_new_item = {'name':     "Give a Name",
                            'function': "Describe Function",
