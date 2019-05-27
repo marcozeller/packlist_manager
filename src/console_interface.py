@@ -21,12 +21,15 @@ custom_shortcuts_general = {
         ord('z'): 'do_nothing',
         ord('j'): 'cursor_down',
         ord('k'): 'cursor_up',
+        curses.ascii.NL: 'enter_selected',
         ord('l'): 'enter_selected',
         ord('f'): 'find',
         ord('/'): 'find',
         ord('w'): 'press_ok',
+        ord('o'): 'press_ok',
         ord('q'): 'press_cancel',
-        ord('?'): 'show_help',
+        ord('c'): 'press_cancel',
+        ord('?'): 'show_help',  # not implemented
         }
 
 custom_shortcuts_main_menu = custom_shortcuts_general.copy()
@@ -36,16 +39,18 @@ custom_shortcuts_main_menu.update({
 
 custom_shortcuts_add_item = custom_shortcuts_general.copy()
 custom_shortcuts_add_item.update({
-        ord('i'): 'edit_attribute',
-        curses.ascii.ESC: 'command_mode',
+        ord('i'): 'edit_attribute',  # not implemented
+        curses.ascii.ESC: 'command_mode',  # not implemented
+        '^J': 'cursor_down',
+        '^K': 'cursor_up',  # does not work - already used in Bash Shell...
+        '^W': 'press_ok',
+        '^Q': 'press_cancel',
         })
 
 custom_shortcuts_list_items = custom_shortcuts_general.copy()
 custom_shortcuts_list_items.update({
-        ord('l'): 'change_item',
         ord('x'): 'delete_item',
         ord('d'): 'delete_item',
-        ord('/'): 'find',
         })
 
 custom_shortcuts_edit_item = custom_shortcuts_general.copy()
@@ -85,9 +90,9 @@ custom_shortcuts_edit_pack.update({
 
 default_values_new_item = {'name':     "Give a Name",
                            'function': "Describe Function",
-                           'weight':   "0",
-                           'volume':   "0",
-                           'price':    "0",
+                           'weight':   "0.0",
+                           'volume':   "0.0",
+                           'price':    "0.0",
                            'amount':   "0"}
 
 default_values_new_pack = {'name':     "Give a Name",
@@ -161,6 +166,7 @@ class MainMenu(nps.ActionFormMinimal):
                 custom_handlers[key] = self.do_nothing
             elif custom_shortcuts_main_menu[key] == 'show_help':
                 custom_handlers[key] = self.h_display_help
+                # TODO implement display help
             elif custom_shortcuts_main_menu[key] == 'press_ok':
                 custom_handlers[key] = self.exit_form
         self.add_handlers(custom_handlers)
@@ -183,6 +189,31 @@ class MainMenu(nps.ActionFormMinimal):
         self.parentApp.setNextForm(None)
 
 
+class AttributeField(nps.Textfield):
+    def set_handlers(self):
+        super(nps.Textfield, self).set_up_handlers()
+        custom_handlers = {}
+        for key in custom_shortcuts_add_item.keys():
+            if custom_shortcuts_add_item[key] == 'do_nothing':
+                try:
+                    self.handlers.pop(key)
+                except KeyError:
+                    pass
+            elif custom_shortcuts_add_item[key] == 'cursor_down':
+                custom_handlers[key] = self.h_exit_down
+            elif custom_shortcuts_add_item[key] == 'cursor_up':
+                custom_handlers[key] = self.h_exit_up
+            elif custom_shortcuts_add_item[key] == 'edit_attribute':
+                custom_handlers[key] = self.enter_insert_mode
+            else:
+                pass
+        self.add_handlers(custom_handlers)
+
+
+class TitledAttributeField(nps.TitleText):
+    _entry_type = AttributeField
+
+
 class AddItem(nps.ActionFormV2):
     """
     Screen containing a formular to enter the attributes of a new item.
@@ -197,23 +228,42 @@ class AddItem(nps.ActionFormV2):
         self._price.value = default_values_new_item['price']
         self._amount.value = default_values_new_item['amount']
 
+    def set_up_handlers(self):
+        super(nps.ActionFormV2, self).set_up_handlers()
+        custom_handlers = {}
+        for key in custom_shortcuts_add_item.keys():
+            if custom_shortcuts_add_item[key] == 'do_nothing':
+                try:
+                    self.handlers.pop(key)
+                except KeyError:
+                    pass
+            elif custom_shortcuts_add_item[key] == 'press_ok':
+                custom_handlers[key] = self.press_ok
+            elif custom_shortcuts_add_item[key] == 'press_cancel':
+                custom_handlers[key] = self.press_cancel
+            elif custom_shortcuts_add_item[key] == 'show_help':
+                custom_handlers[key] = self.h_display_help
+            else:
+                pass
+        self.add_handlers(custom_handlers)
+
     def create(self):
         """
         Draws the formular with fields to enter the attributes.
         Fills the field with default values.
         """
         # draw the fields needed to enter the attributes
-        self._name = self.add(nps.TitleText, name=language['name'])
-        self._function = self.add(nps.TitleText, name=language['function'])
-        self._weight = self.add(nps.TitleText, name=language['weight'])
-        self._volume = self.add(nps.TitleText, name=language['volume'])
-        self._price = self.add(nps.TitleText, name=language['price'])
-        self._amount = self.add(nps.TitleText, name=language['amount'])
+        self._name = self.add(TitledAttributeField, name=language['name'])
+        self._function = self.add(TitledAttributeField, name=language['function'])
+        self._weight = self.add(TitledAttributeField, name=language['weight'])
+        self._volume = self.add(TitledAttributeField, name=language['volume'])
+        self._price = self.add(TitledAttributeField, name=language['price'])
+        self._amount = self.add(TitledAttributeField, name=language['amount'])
 
         # fill in the fields with the default values
         self.reset_fields()
 
-    def on_ok(self):
+    def press_ok(self, ch=None):
         """
         Gets called when the 'OK' button is pressed.
         Saves all the attributes into the database.
@@ -234,9 +284,12 @@ class AddItem(nps.ActionFormV2):
         self.reset_fields()
 
         # go back to main screen
-        self.parentApp.setNextForm('MAIN')
+        self.parentApp.switchForm('MAIN')
 
-    def on_cancel(self):
+    def on_ok(self):
+        self.press_ok()
+
+    def press_cancel(self, ch=None):
         """
         Gets called when the 'CANCEL' button is pressed.
         Make no changes to the database and exit the formular.
@@ -245,25 +298,68 @@ class AddItem(nps.ActionFormV2):
         self.reset_fields()
 
         # go back to main screen
-        self.parentApp.setNextForm('MAIN')
+        self.parentApp.switchForm('MAIN')
+
+    def on_cancel(self):
+        self.press_cancel()
 
 
 class ItemList(nps.MultiLineAction):
+    def set_up_handlers(self):
+        super(nps.MultiLineAction, self).set_up_handlers()
+        custom_handlers = {}
+        for key in custom_shortcuts_list_items.keys():
+            if custom_shortcuts_list_items[key] == 'do_nothing':
+                try:
+                    self.handlers.pop(key)
+                except KeyError:
+                    pass
+            elif custom_shortcuts_list_items[key] == 'find':
+                custom_handlers[key] = self.h_set_filter
+            elif custom_shortcuts_list_items[key] == 'enter_selected':
+                custom_handlers[key] = self.h_act_on_highlighted
+            elif custom_shortcuts_list_items[key] == 'delete_item':
+                custom_handlers[key] = self.h_act_on_highlighted
+            else:
+                pass
+        self.add_handlers(custom_handlers)
+
     def display_value(self, vl):
         return vl['name'] + ' (id = ' + str(vl['id']) + ')'
 
     def actionHighlighted(self, act_on_this, keypress):
-        self.parent.parentApp.selected_item = act_on_this
-        if keypress == ord('d'):
+        if custom_shortcuts_list_items[keypress] == 'delete_item':
             # delete the item and redraw the screen
             self.parent.parentApp.db.delete_item(act_on_this)
             self.parent.parentApp.switchForm('LIST_ITEMS')
-        else:
+        elif custom_shortcuts_list_items[keypress] == 'enter_selected':
             # go to the edit item screen
+            self.parent.parentApp.selected_item = act_on_this
             self.parent.parentApp.switchForm('EDIT_ITEM')
+        else:
+            pass
 
 
 class ListItems(nps.ActionFormMinimal):
+    def set_up_handlers(self):
+        super(nps.ActionFormMinimal, self).set_up_handlers()
+        custom_handlers = {}
+        for key in custom_shortcuts_list_items.keys():
+            if custom_shortcuts_list_items[key] == 'do_nothing':
+                try:
+                    self.handlers.pop(key)
+                except KeyError:
+                    pass
+            elif custom_shortcuts_list_items[key] == 'press_ok':
+                custom_handlers[key] = self.press_ok
+            elif custom_shortcuts_list_items[key] == 'press_cancel':
+                custom_handlers[key] = self.press_ok
+            elif custom_shortcuts_list_items[key] == 'show_help':
+                custom_handlers[key] = self.h_display_help
+            else:
+                pass
+        self.add_handlers(custom_handlers)
+
     def create(self):
         item_list = self.parentApp.db.get_all_items()
         self.item_list_widget = self.add(ItemList,
@@ -271,17 +367,14 @@ class ListItems(nps.ActionFormMinimal):
                                          scroll_exit=True,
                                          exit_right=True)
 
-        # Setup handler for deleting an item from list:
-        # If the key 'd' is pressed call the function
-        # item_list.actionHighlighted automatically with the right paramters.
-        self.handlers[ord('d')] = self.item_list_widget.h_act_on_highlighted
-        # TODO: remove unneeded handlers
-
     def beforeEditing(self):
         self.item_list_widget.values = self.parentApp.db.get_all_items()
 
+    def press_ok(self, ch=None):
+        self.parentApp.switchForm('MAIN')
+
     def on_ok(self):
-        self.parentApp.setNextForm('MAIN')
+        self.press_ok()
 
 
 class EditItem(nps.ActionFormV2):

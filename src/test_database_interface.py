@@ -29,14 +29,21 @@ def compare_item_data(item_tuple, attribute_dict, item_id=0):
     """
     if item_id == 0:
         item_id = item_tuple[0]
-
-    return item_tuple == (item_id,
-                          attribute_dict['name'],
-                          attribute_dict['function'],
-                          str(attribute_dict['weight']),
-                          str(attribute_dict['volume']),
-                          str(attribute_dict['price']),
-                          attribute_dict['amount'])
+    if not item_tuple[0] == item_id:
+        return False
+    if not item_tuple[1] == attribute_dict['name']:
+        return False
+    if not item_tuple[2] == attribute_dict['function']:
+        return False
+    if not item_tuple[3] == str(attribute_dict['weight']):
+        return False
+    if not item_tuple[4] == str(attribute_dict['volume']):
+        return False
+    if not item_tuple[5] == str(attribute_dict['price']):
+        return False
+    if not item_tuple[6] == attribute_dict['amount']:
+        return False
+    return True
 
 
 def test_initialize():
