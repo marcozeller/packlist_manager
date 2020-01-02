@@ -1,5 +1,19 @@
 #!/usr/bin/env Python3
 import PySimpleGUI as sg
+import database_interface as dbi
+import metadata.languages_default_values as met
+import decimal
+
+__author__ = "Marco Zeller"
+__version__ = "0.0.10"
+__license__ = "MIT"
+
+db_path = 'databases/manual_gui_testing.db'
+
+default_values_new_item = met.default_values_new_item
+default_values_new_pack = met.default_values_new_pack
+unit_for = met.unit_for
+language = met.language_english
 
 sg.ChangeLookAndFeel('SystemDefault')
 # print(sg.Window('Packlist Manager: Add New Item').Layout(add_item_layout).Read())

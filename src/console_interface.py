@@ -8,6 +8,7 @@ and the utility module for more complex operations.
 """
 import npyscreen as nps
 import database_interface as dbi
+import metadata.languages_default_values as met
 import decimal
 
 __author__ = "Marco Zeller"
@@ -16,37 +17,10 @@ __license__ = "MIT"
 
 db_name = 'databases/manual_testing.db'
 
-default_values_new_item = {'name':     "Give a Name",
-                           'function': "Describe Function",
-                           'weight':   "0",
-                           'volume':   "0",
-                           'price':    "0",
-                           'amount':   "0"}
-
-default_values_new_pack = {'name':     "Give a Name",
-                           'function': "Describe Function"}
-
-unit_for = {'weight': "kg",
-            'volume': "L",
-            'price':  "CHF"}
-
-language_english = {'name':         "Name: ",
-                    'function':     "Function: ",
-                    'weight':       "Weight [" + unit_for['weight'] + "]: ",
-                    'volume':       "Volume [" + unit_for['volume'] + "]: ",
-                    'price':        "Price [" + unit_for['price'] + "]: ",
-                    'amount':       "Amount: ",
-                    'main_menu':    "Main Menu",
-                    'add_new_item': "Add a new Item",
-                    'list_items':   "List Items",
-                    'edit_item':    "Edit Item",
-                    'add_new_pack': "Add a new Pack",
-                    'list_packs':   "List Packs",
-                    'edit_pack':    "Edit Pack",
-                    'select_items': "Select Items:",
-                    'select_packs': "Select Packs:"}
-
-language = language_english
+default_values_new_item = met.default_values_new_item
+default_values_new_pack = met.default_values_new_pack
+unit_for = met.unit_for
+language = met.language_english
 
 
 class MainMenu(nps.ActionFormMinimal):
