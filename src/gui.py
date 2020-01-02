@@ -190,11 +190,16 @@ def get_add_pack_win(items_to_display, packs_to_display):
     return add_pack_win
 
 
-def get_list_packs_win():
+def get_list_packs_win(packs_list):
     # ------ List Packs ------------- #
     list_packs_layout = [
-                         [sg.Listbox(values=['Listbox ' + str(i) for i in range(100)], size=(60, 10))],
-                         [sg.Cancel()]
+                         [sg.Listbox(values=[DisplayItem(p) for p in packs_list],
+                                     size=(60, 10),
+                                     bind_return_key=True,
+                                     enable_events=True,
+                                     select_mode=sg.LISTBOX_SELECT_MODE_BROWSE,
+                                     )],
+                         [sg.Button('Modify', key='modify_pack'), sg.Cancel()]
                         ]
 
     list_packs_win = sg.Window(
@@ -204,6 +209,43 @@ def get_list_packs_win():
                  )
 
     return list_packs_win
+
+
+def get_modify_pack_win(pack_to_modify, items_to_display, packs_to_display):
+    # ------ Modify Pack ------------ #
+    add_pack_layout = [
+                       [sg.Text('Name:'), sg.InputText('Give a Name', key='name')],
+                       [sg.Text('Function:'), sg.InputText('Describe Function', key='function')],
+                       [sg.Text('Weight [kg]:'), sg.Text('0', key='weight')],
+                       [sg.Text('Volume [L]:'), sg.Text('0', key='volume')],
+                       [sg.Text('Price [CHF]:'), sg.Text('0', key='price')],
+                       [sg.Text('Amount:'), sg.Text('0', key='amount')],
+                       [sg.Button('Select Items', key='select_items'), sg.Button('Deselect Items', key='diselect_items'),],
+                       [sg.Listbox(values=items_to_display,
+                                   size=(60, 10),
+                                   bind_return_key=False,
+                                   enable_events=True,
+                                   select_mode=sg.LISTBOX_SELECT_MODE_BROWSE,
+                                   key='item_toggeled',
+                                   )],
+                       [sg.Button('Select Packs', key='select_packs'), sg.Button('Deselect Packs', key='diselect_packs'),],
+                       [sg.Listbox(values=packs_to_display,
+                                   size=(60, 10),
+                                   bind_return_key=True,
+                                   enable_events=True,
+                                   key='pack_toggeled',
+                                   )],
+                       [sg.Save(), sg.Cancel()],
+                      ]
+
+    add_pack_win = sg.Window(
+                 'Add New Pack',
+                 add_pack_layout,
+                 resizable=True,
+                 )
+
+    return add_pack_win
+
 
 
 # ------ Logic ------------------ #
@@ -345,10 +387,30 @@ while True:
     elif menu_event == 'open_list_packs':
         # active_win = 'list_packs'
         menu_win.Hide()
-        list_packs_win = get_list_packs_win()
+        packs_list = db.get_all_packs()
+        list_packs_win = get_list_packs_win(packs_list)
 
         while True:
             list_packs_event, list_packs_values = list_packs_win.Read()
+
+            if list_packs_event == 'modify_pack':
+                pack_to_modify = list_packs_values[0][0].item_dict
+                list_packs_win.hide()
+                items_in_pack = db.get_items_in_pack(pack_to_modify)
+                items_not_in_pack = db.get_items_not_in_pack(pack_to_modify)
+                items_to_display = [DisplayItemToSelect(i, i['selected']) for i in items_in_pack]
+                items_to_display += [DisplayItemToSelect(i, 0) for i in items_not_in_pack]
+
+                packs_in_pack = db.get_packs_in_pack(pack_to_modify)
+                packs_not_in_pack = db.get_packs_not_in_pack(pack_to_modify)
+                packs_to_display = [DisplayItemToSelect(i, i['selected']) for i in packs_in_pack]
+                packs_to_display += [DisplayItemToSelect(i, 0) for i in packs_not_in_pack]
+
+                modify_pack_win = get_modify_pack_win(pack_to_modify, items_to_display, packs_to_display)
+
+                while True:
+                    modify_pack_event, modify_item_values = modify_pack_win.Read()
+
             if list_packs_event == 'Cancel':
                 list_packs_win.close()
                 menu_win.UnHide()
