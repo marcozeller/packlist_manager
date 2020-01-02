@@ -77,11 +77,25 @@ def get_add_item_win():
     return add_item_win
 
 
-def get_list_items_win():
+def get_list_items_win(item_list):
     # ------ List Items ------------- #
+    class DisplayItem:
+        def __init__(self, item_dict):
+            self.item_dict = item_dict
+
+        def __str__(self):
+            return str(self.item_dict['id']) + ' : ' + self.item_dict['name']
+
+        def get_id(self):
+            return self.item_dict['id']
+
     list_items_layout = [
-                         [sg.Listbox(values=['Listbox ' + str(i) for i in range(100)], size=(60, 10))],
-                         [sg.Cancel()]
+                         [sg.Listbox(values=[DisplayItem(i) for i in item_list],
+                                     size=(60, 10),
+                                     bind_return_key=True,
+                                     enable_events=True,
+                                     )],
+                         [sg.Button('Modify', key='modify_item'), sg.Cancel()]
                         ]
 
     list_items_win = sg.Window(
@@ -91,6 +105,27 @@ def get_list_items_win():
                  )
 
     return list_items_win
+
+
+def get_modify_item_win(item_dict):
+    # ------ Modify Item --------------- #
+    modify_item_layout = [
+                       [sg.Text('Name:'), sg.InputText(item_dict['name'], key='name')],
+                       [sg.Text('Function:'), sg.InputText(item_dict['function'], key='function')],
+                       [sg.Text('Weight [kg]:'), sg.InputText(item_dict['weight'], key='weight')],
+                       [sg.Text('Volume [L]:'), sg.InputText(item_dict['volume'], key='volume')],
+                       [sg.Text('Price [CHF]:'), sg.InputText(item_dict['price'], key='price')],
+                       [sg.Text('Amount:'), sg.InputText(item_dict['amount'], key='amount')],
+                       [sg.Save(), sg.Cancel()],
+                      ]
+
+    add_item_win = sg.Window(
+                 'Modify Item',
+                 modify_item_layout,
+                 resizable=True,
+                 )
+
+    return add_item_win
 
 
 def get_add_pack_win():
@@ -132,6 +167,7 @@ def get_list_packs_win():
 
 # ------ Logic ------------------ #
 menu_win = get_menu_win()
+db = dbi.Database(db_path)
 
 while True:
     menu_event, menu_values = menu_win.Read(timeout=100)
@@ -144,7 +180,6 @@ while True:
         while True:
             db_options_event, db_options_values = db_options_win.Read()
             if db_options_event == 'Save':
-                # TODO: save new item
                 db_options_win.close()
                 menu_win.UnHide()
                 break
@@ -161,7 +196,11 @@ while True:
         while True:
             add_item_event, add_item_values = add_item_win.Read()
             if add_item_event == 'Save':
-                # TODO: save new item
+                add_item_values['weight'] = decimal.Decimal(add_item_values['weight'])
+                add_item_values['volume'] = decimal.Decimal(add_item_values['volume'])
+                add_item_values['price'] = decimal.Decimal(add_item_values['price'])
+                add_item_values['amount'] = int(add_item_values['amount'])
+                db.store_new_item(add_item_values)
                 add_item_win.close()
                 menu_win.UnHide()
                 break
@@ -173,11 +212,40 @@ while True:
     elif menu_event == 'open_list_items':
         # active_win = 'list_items'
         menu_win.Hide()
-        list_items_win = get_list_items_win()
+        item_list = db.get_all_items()
+        list_items_win = get_list_items_win(item_list)
 
         while True:
             list_items_event, list_items_values = list_items_win.Read()
-            if list_items_event == 'Cancel':
+
+            if list_items_event == 'modify_item':
+                item_to_modify = list_items_values[0][0].item_dict
+                list_items_win.hide()
+                modify_item_win = get_modify_item_win(item_to_modify)
+
+                while True:
+                    modify_item_event, modify_item_values = modify_item_win.Read()
+
+                    if modify_item_event == 'Save':
+                        modify_item_values['id'] = item_to_modify['id']
+                        modify_item_values['weight'] = decimal.Decimal(modify_item_values['weight'])
+                        modify_item_values['volume'] = decimal.Decimal(modify_item_values['volume'])
+                        modify_item_values['price'] = decimal.Decimal(modify_item_values['price'])
+                        modify_item_values['amount'] = int(modify_item_values['amount'])
+                        db.update_item(modify_item_values)
+
+                        item_list = db.get_all_items()
+                        list_items_win = get_list_items_win(item_list)
+                        modify_item_win.close()
+                        list_items_win.UnHide()
+                        break
+
+                    elif modify_item_event == 'Cancel':
+                        modify_item_win.close()
+                        list_items_win.UnHide()
+                        break
+
+            elif list_items_event == 'Cancel':
                 list_items_win.close()
                 menu_win.UnHide()
                 break
