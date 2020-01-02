@@ -77,23 +77,25 @@ def get_add_item_win():
     return add_item_win
 
 
-def get_list_items_win(item_list):
+class DisplayItem:
+    def __init__(self, item_dict):
+        self.item_dict = item_dict
+
+    def __str__(self):
+        return '(id = ' + str(self.item_dict['id']) + ') : ' + self.item_dict['name']
+
+    def get_id(self):
+        return self.item_dict['id']
+
+
+def get_list_items_win(items_list):
     # ------ List Items ------------- #
-    class DisplayItem:
-        def __init__(self, item_dict):
-            self.item_dict = item_dict
-
-        def __str__(self):
-            return str(self.item_dict['id']) + ' : ' + self.item_dict['name']
-
-        def get_id(self):
-            return self.item_dict['id']
-
     list_items_layout = [
-                         [sg.Listbox(values=[DisplayItem(i) for i in item_list],
+                         [sg.Listbox(values=[DisplayItem(i) for i in items_list],
                                      size=(60, 10),
                                      bind_return_key=True,
                                      enable_events=True,
+                                     select_mode=sg.LISTBOX_SELECT_MODE_BROWSE,
                                      )],
                          [sg.Button('Modify', key='modify_item'), sg.Cancel()]
                         ]
@@ -128,7 +130,31 @@ def get_modify_item_win(item_dict):
     return add_item_win
 
 
-def get_add_pack_win():
+class DisplayItemToSelect:
+    def __init__(self, item_dict, selected):
+        self.item_dict = item_dict
+        self.item_dict['selected'] = selected
+
+    def __str__(self):
+        return str(self.item_dict['selected']) + ' x ' + \
+               '(id = ' + str(self.item_dict['id']) + ') : ' + \
+               self.item_dict['name']
+
+    def get_selected(self):
+        return self.item_dict['selected']
+
+    def select_more(self):
+        self.item_dict['selected'] += 1
+
+    def select_less(self):
+        if self.item_dict['selected'] > 0:
+            self.item_dict['selected'] -= 1
+
+    def get_id(self):
+        return self.item_dict['id']
+
+
+def get_add_pack_win(items_to_display, packs_to_display):
     # ------ Add Pack --------------- #
     add_pack_layout = [
                        [sg.Text('Name:'), sg.InputText('Give a Name', key='name')],
@@ -137,6 +163,21 @@ def get_add_pack_win():
                        #[sg.Text('Volume [L]:'), sg.Text('0', key='volume')],
                        #[sg.Text('Price [CHF]:'), sg.Text('0', key='price')],
                        #[sg.Text('Amount:'), sg.Text('0', key='amount')],
+                       [sg.Button('Select Items', key='select_items'), sg.Button('Deselect Items', key='diselect_items'),],
+                       [sg.Listbox(values=items_to_display,
+                                   size=(60, 10),
+                                   bind_return_key=False,
+                                   enable_events=True,
+                                   select_mode=sg.LISTBOX_SELECT_MODE_BROWSE,
+                                   key='item_toggeled',
+                                   )],
+                       [sg.Button('Select Packs', key='select_packs'), sg.Button('Deselect Packs', key='diselect_packs'),],
+                       [sg.Listbox(values=packs_to_display,
+                                   size=(60, 10),
+                                   bind_return_key=True,
+                                   enable_events=True,
+                                   key='pack_toggeled',
+                                   )],
                        [sg.Save(), sg.Cancel()],
                       ]
 
@@ -212,8 +253,8 @@ while True:
     elif menu_event == 'open_list_items':
         # active_win = 'list_items'
         menu_win.Hide()
-        item_list = db.get_all_items()
-        list_items_win = get_list_items_win(item_list)
+        items_list = db.get_all_items()
+        list_items_win = get_list_items_win(items_list)
 
         while True:
             list_items_event, list_items_values = list_items_win.Read()
@@ -235,9 +276,9 @@ while True:
                         db.update_item(modify_item_values)
 
                         item_list = db.get_all_items()
+                        list_items_win.close()
                         list_items_win = get_list_items_win(item_list)
                         modify_item_win.close()
-                        list_items_win.UnHide()
                         break
 
                     elif modify_item_event == 'Cancel':
@@ -253,11 +294,23 @@ while True:
     elif menu_event == 'open_add_pack':
         # active_win = 'add_pack'
         menu_win.Hide()
-        add_pack_win = get_add_pack_win()
+        items_list = db.get_all_items()
+        items_to_display = [DisplayItemToSelect(i, 0) for i in items_list]
+        packs_list = db.get_all_packs()
+        packs_to_display = [DisplayItemToSelect(i, 0) for i in packs_list]
+        add_pack_win = get_add_pack_win(items_to_display, packs_to_display)
 
+        adding_items = True
+        adding_packs = True
         while True:
             add_pack_event, add_pack_values = add_pack_win.Read()
+            print(add_pack_event)
+
             if add_pack_event == 'Save':
+                included_items = [{'id': i.get_id(), 'selected': i.get_selected()} for i in items_to_display]
+                included_packs = [{'id': p.get_id(), 'selected': p.get_selected()} for p in packs_to_display]
+
+                db.store_new_pack(add_pack_values, included_items, included_packs)
                 # TODO: save new pack
                 add_pack_win.close()
                 menu_win.UnHide()
@@ -266,6 +319,28 @@ while True:
                 add_pack_win.close()
                 menu_win.UnHide()
                 break
+            elif add_pack_event == 'select_items':
+                adding_items = True
+            elif add_pack_event == 'diselect_items':
+                adding_items = False
+            elif add_pack_event == 'item_toggeled':
+                if adding_items:
+                    add_pack_values['item_toggeled'][0].select_more()
+                else:
+                    add_pack_values['item_toggeled'][0].select_less()
+                add_pack_win.close()
+                add_pack_win = get_add_pack_win(items_to_display, packs_to_display)
+            elif add_pack_event == 'select_packs':
+                adding_packs = True
+            elif add_pack_event == 'diselect_packs':
+                adding_packs = False
+            elif add_pack_event == 'pack_toggeled':
+                if adding_packs:
+                    add_pack_values['pack_toggeled'][0].select_more()
+                else:
+                    add_pack_values['pack_toggeled'][0].select_less()
+                add_pack_win.close()
+                add_pack_win = get_add_pack_win(items_to_display, packs_to_display)
 
     elif menu_event == 'open_list_packs':
         # active_win = 'list_packs'
